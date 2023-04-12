@@ -13,3 +13,4 @@ class Jail(Cell):
     def pay_bail(self, user):
         user.budget -= self.jail_bail
         user.inJail = False
+        user.jailTurns = 0

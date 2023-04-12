@@ -18,13 +18,131 @@
       ]
     },
     {
+      "type": "property",
+      "name": "kadıköy",
+      "cell": 4,
+      "color": "red",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "property",
+      "name": "taksim",
+      "cell": 6,
+      "color": "red",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "property",
+      "name": "etiler",
+      "cell": 6,
+      "color": "blue",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "property",
+      "name": "ortakoy",
+      "cell": 7,
+      "color": "blue",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "gotojail"
+    },
+    {
+      "type": "property",
+      "name": "atakoy",
+      "cell": 6,
+      "color": "blue",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "chance"
+    },
+    {
+      "type": "property",
+      "name": "rumeli",
+      "cell": 6,
+      "color": "green",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "property",
+      "name": "sisli",
+      "cell": 9,
+      "color": "green",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "jail"
+    },
+    {
+      "type": "property",
+      "name": "levent",
+      "cell": 10,
+      "color": "green",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
       "type": "teleport"
     },
     {
       "type": "tax"
-    },
-    {
-      "type": "jail"
     }
   ],
   "upgrade": 50,

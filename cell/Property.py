@@ -32,6 +32,13 @@ class Property(Cell):
             self.level -= 1
 
     def payRent(self, owner: User, resident: User):
+
+        if owner.inJail:
+            return
         rent = self.rents[self.level]
         resident.budget -= rent
         owner.budget += rent
+
+
+    def __str__(self):
+        return self.name + " " + str(self.location)

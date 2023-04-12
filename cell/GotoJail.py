@@ -11,4 +11,4 @@ class GotoJail(Cell):
 
     def goto_jail(self, user, jail_location):
         user.location = jail_location
-        user.jail = True
+        user.inJail = True
