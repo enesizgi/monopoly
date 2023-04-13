@@ -1,4 +1,5 @@
 from typing import List
+import json
 
 import sys
 sys.path.append('..')
@@ -12,8 +13,8 @@ import random
 
 class ChanceCard(Cell):
 
-    def __init__(self, location):
-        super().__init__(location)
+    def __init__(self, location, cell_type):
+        super().__init__(location, cell_type)
         self.card = None
         # define enum for chance cards
 
@@ -21,7 +22,9 @@ class ChanceCard(Cell):
                             "Lottery", "Tax"]
 
     def getChanceCard(self):
-        self.card = random.choice(self.chanceCards)
+        chance_card = random.choice(self.chanceCards)
+        print(f'You picked this chance card: {chance_card}!\n')
+        self.card = chance_card
 
     def applyChanceCard(self, props: List[Property] = None, user: User = None, board=None):
         if self.card == 'Upgrade':
@@ -44,3 +47,15 @@ class ChanceCard(Cell):
         elif self.card == 'Tax':
             user.budget -= board.tax
         self.card = None
+
+    def to_json(self):
+        return json.dumps({
+            "location": self.location,
+
+        })
+
+    def getstate(self):
+        return {
+            "location": self.location,
+            "type": "Chance",
+        }

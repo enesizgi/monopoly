@@ -18,7 +18,6 @@ class User:
         self.fullname = fullname
         self.passwd = passwd
 
-
     def board_callback(self, board):
         print('board callback', board)
         pass
@@ -36,15 +35,7 @@ class User:
         self.location = new_location % cell_count
 
     def get(self):
-        return json.dumps({
-            'id': self.id,
-            'properties': self.properties,
-            'location': self.location,
-            'inJail': self.inJail,
-            'hasJailFreeCard': self.hasJailFreeCard,
-            'budget': self.budget,
-            'ready': self.ready
-        })
+        return self.to_json()
 
     def auth(self, plainpass):
         pass
@@ -73,11 +64,28 @@ class User:
             self.passwd = passwd
 
     def notifyTurn(self, commands):
+        print(f'Turncb called for {self.username}\n')
         print('Commands:')
         for i, command in enumerate(commands):
-            print(f'{i}: {command["name"]}')
+            print(f'{i}: {command["type"]}')
 
-        command = int(input("Select possible command (0,1,2...)"))
+        command = int(input("Select possible command (0,1,2...)\n"))
 
-        return command
+        return commands[command]
 
+    def to_json(self):
+        return json.dumps({
+            'id': self.id,
+            'properties': [props.getstate() for props in self.properties],
+            'username': self.username,
+            # 'properties': self.properties,
+            'location': self.location,
+            'inJail': self.inJail,
+            'jailTurns': self.jailTurns,
+            'hasJailFreeCard': self.hasJailFreeCard,
+            'budget': self.budget,
+            'ready': self.ready
+        }, indent=4)
+
+    def __repr__(self):
+        return self.get()

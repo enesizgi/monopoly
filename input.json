@@ -5,7 +5,7 @@
     },
     {
       "type": "property",
-      "name": "bostancı",
+      "name": "bostanci",
       "cell": 2,
       "color": "red",
       "price": 120,
@@ -19,7 +19,7 @@
     },
     {
       "type": "property",
-      "name": "kadıköy",
+      "name": "kadikoy",
       "cell": 4,
       "color": "red",
       "price": 120,

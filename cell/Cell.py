@@ -1,6 +1,10 @@
 class Cell:
-    def __init__(self, location=None):
+    def __init__(self, location=None, type=None):
         self.location = location
+        self.type = type
 
-    # def __str__(self):
-    #     return f'{self.name} {self.type} {self.color} {self.price} {self.rents} {self.level} {self.location}'
+    def getstate(self):
+        return self.__dict__
+
+    def __str__(self):
+        return f'{self.name} {self.type} {self.color} {self.price} {self.rents} {self.level} {self.location}'

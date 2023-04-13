@@ -3,8 +3,8 @@ from .Cell import Cell
 
 class Jail(Cell):
 
-    def __init__(self, location, jail_bail: int):
-        super().__init__(location)
+    def __init__(self, location, jail_bail: int, cell_type):
+        super().__init__(location, cell_type)
         self.jail_bail = jail_bail
 
     def __str__(self):
@@ -14,3 +14,10 @@ class Jail(Cell):
         user.budget -= self.jail_bail
         user.inJail = False
         user.jailTurns = 0
+
+    def getstate(self):
+        return {
+            'location': self.location,
+            'jail_bail': self.jail_bail,
+            'type': 'Jail'
+        }

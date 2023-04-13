@@ -3,8 +3,8 @@ from Cell import Cell
 
 class Lottery(Cell):
 
-    def __init__(self, location, lottery_fee):
-        super().__init__(location)
+    def __init__(self, location, lottery_fee, cell_type):
+        super().__init__(location, cell_type)
         self.lottery_fee = lottery_fee
 
     def __str__(self):
@@ -12,3 +12,10 @@ class Lottery(Cell):
 
     def lottery(self, user):
         user.budget += self.lottery_fee
+
+    def getstate(self):
+        return {
+            'location': self.location,
+            'lottery_fee': self.lottery_fee,
+            'type': 'Lottery'
+        }
