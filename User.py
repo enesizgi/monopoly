@@ -2,7 +2,13 @@ import json
 
 
 class User:
+
+    """
+    This class represents a user in the game.
+    """
     def __init__(self, initial_budget: int, user_id: int, username=None, email=None, fullname=None, passwd=None):
+
+        # Game related
         self.id = user_id
         self.properties = []
         self.location = 0
@@ -13,18 +19,25 @@ class User:
         self.callback = None
         self.turncb = None
         self.ready = False
+
+        # Authentication related
         self.username = username
         self.email = email
         self.fullname = fullname
         self.passwd = passwd
 
-    def board_callback(self, board):
-        print('board callback', board)
-        pass
-
     def move(self, dice, cell_count, salary):
+        """
+        This method moves the user to the new location.
+        :param dice: (int, int)
+        :param cell_count: int
+        :param salary: int
+        :return:
+        """
         dice1, dice2 = dice
         new_location = (self.location + dice1 + dice2)
+
+        # check if user is in jail and if he can get out of jail by rolling doubles
         if self.inJail and dice1 == dice2:
             self.jailTurns = 0
             self.inJail = False
@@ -64,6 +77,11 @@ class User:
             self.passwd = passwd
 
     def notifyTurn(self, commands):
+        """
+        This method notifies the user that it is his turn. User should select a command from the list of commands.
+        :param commands:
+        :return:
+        """
         print(f'Turncb called for {self.username}\n')
         print('Commands:')
         for i, command in enumerate(commands):
@@ -74,7 +92,7 @@ class User:
         return commands[command]
 
     def to_json(self):
-        return json.dumps({
+        return {
             'id': self.id,
             'properties': [props.getstate() for props in self.properties],
             'username': self.username,
@@ -85,7 +103,7 @@ class User:
             'hasJailFreeCard': self.hasJailFreeCard,
             'budget': self.budget,
             'ready': self.ready
-        }, indent=4)
+        }
 
     def __repr__(self):
         return self.get()

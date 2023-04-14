@@ -3,6 +3,10 @@ from Cell import Cell
 
 class Lottery(Cell):
 
+    """
+    This class represents a lottery cell in the board.
+    """
+
     def __init__(self, location, lottery_fee, cell_type):
         super().__init__(location, cell_type)
         self.lottery_fee = lottery_fee

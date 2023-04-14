@@ -3,6 +3,10 @@ from .Cell import Cell
 
 class Start(Cell):
 
+    """
+    This class represents a start cell in the board.
+    """
+
     def __init__(self, location, salary, cell_type):
         super().__init__(location, cell_type)
         self.salary = salary
