@@ -20,7 +20,7 @@ class Board:
     def __init__(self, file):
 
         '''
-            Constructor for the board class. Takes in a json file and parses it to create the board.
+        Constructor for the board class. Takes in a json file and parses it to create the board.
         :param file: .json file containing the board information
         '''
 
@@ -30,7 +30,9 @@ class Board:
         self.started = False  # boolean to check if the game has started, is used in main game loop
         self.userTurn = []
         self.lastCommand = None  # holds the last command that is executed
-        self.turn_changed = False
+        self.turn_changed = True
+        self.first_roll = True
+
         # self.current_user = 0
         with open(file) as f:
             data = json.load(f)
@@ -159,6 +161,18 @@ class Board:
         # if the user wants to roll the dice, move the user and print the cell type and name that the user has arrived
         if command['type'] == "roll":
             dice = self.get_random_dice()
+            if user.inJail:
+                if dice[0] == dice[1]:
+                    user.inJail = False
+                    user.jailTurns = 0
+                else:
+                    user.jailTurns += 1
+                    if user.jailTurns == 3:
+                        user.inJail = False
+                        user.jailTurns = 0
+                    else:
+                        return
+
             user.move(dice, len(self.cells), self.salary)
             name = getattr(self.cells[user.location], 'name', '')
             print(f'You have arrived {self.cells[user.location].type} {name}!')
@@ -187,9 +201,8 @@ class Board:
         elif command['type'] == "pickProp":
 
             # print all possible properties that the user can upgrade or downgrade
-            for i, cell in enumerate(self.cells):
-                if cell.type == 'property':
-                    print(f'{i}: {cell["name"]}')
+            for i, cell in enumerate(command['props']):
+                print(f'{i}: {cell.name}')
 
             # ask the user to select a property and apply the chance card to the property
             prop = int(input('Select possible property: (0,1,2...)\n'))
@@ -226,9 +239,8 @@ class Board:
         # if the user is on teleport cell and wants to teleport, ask the user to enter a destination and call the teleport
         # method of the teleport cell
         elif command['type'] == "teleport":
-            destination = input(f'Enter your destination between 0 and {len(self.cells) - 1}:\n')
+            destination = int(input(f'Enter your destination between 0 and {len(self.cells) - 1}:\n'))
             self.cells[user.location].teleport(user, destination)
-
 
     def getPropertiesByColor(self, color):
         """
@@ -236,7 +248,34 @@ class Board:
         :param color: string
         :return: list of property cells
         """
-        return list(filter(lambda x: x.color == color, self.cells))
+        return list(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.color == color, self.cells))
+
+    def get_upgradable_properties(self):
+        """
+        Returns all the properties that can be upgraded
+        :return: list of property cells
+        """
+        return list(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 4, self.cells))
+
+    def get_downgradable_properties(self):
+        """
+        Returns all the properties that can be downgraded
+        :return: list of property cells
+        """
+        return list(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 0, self.cells))
+
+    def get_color_properties(self, user):
+        """
+        Returns all the colors of the properties that the user owns
+        :param user: User object
+        :return: list of strings
+        """
+        user_colors = set()
+        for prop in user.properties:
+            user_colors.add(prop.color)
+
+        return user_colors
+
 
     def start(self):
         """
@@ -263,12 +302,6 @@ class Board:
                     self.turn(user, selected_command)
                     self.lastCommand = selected_command
 
-                # if there are no possible commands, move the user to the end of the userTurn list
-                else:
-                    last_user = self.userTurn.pop(0)
-                    self.userTurn.append(last_user)
-                    self.lastCommand = None
-
                 # at the end of each turn, call the callback functions of the users
                 for callback in self.callbacks.values():
                     callback(self.getboardstate())
@@ -281,10 +314,24 @@ class Board:
         """
         possible_commands = []
 
-        if self.lastCommand is None or self.lastCommand['type'] != "roll" or self.lastCommand['type'] == "bail":
-            possible_commands.append({'type': 'roll'})
+        # if self.lastCommand is None or self.lastCommand['type'] != "roll" or self.lastCommand['type'] == "bail":
+        #     possible_commands.append({'type': 'roll'})
 
-        elif self.lastCommand['type'] == "roll":
+        if self.turn_changed:
+            possible_commands.append({'type': 'roll'})
+            self.turn_changed = False
+            if user.inJail:
+                user.jailTurns += 1
+                if user.jailTurns == 3:
+                    user.inJail = False
+                    user.jailTurns = 0
+                else:
+                    if user.budget > self.jailbail or user.hasJailFreeCard:
+                        possible_commands.append({'type': 'bail'})
+
+        else:
+
+            self.turn_changed = True
 
             if self.cells[user.location].type == "property":
                 if self.cells[user.location].owner_id == -1:
@@ -303,18 +350,26 @@ class Board:
                         self.started = False
                         raise Exception("User {} is bankrupt".format(user.id))
 
-
             elif self.cells[user.location].type == "teleport":
                 if user.budget > self.teleport:
                     possible_commands.append({'type': 'teleport'})
                     possible_commands.append({'type': 'skip'})
+
             elif self.cells[user.location].type == "chance":
                 chance_cell = self.cells[user.location]
                 chance_cell.getChanceCard()
-                if chance_cell.card == 'Upgrade' or chance_cell.card == 'Downgrade':
-                    possible_commands.append({'type': 'pickProp'})
+                if chance_cell.card == 'Upgrade':
+                    upgradable_properties = self.get_upgradable_properties()
+                    if len(upgradable_properties) != 0:
+                        possible_commands.append({'type': 'pickProp', 'props': upgradable_properties})
+                elif chance_cell.card == 'Downgrade':
+                    downgradable_properties = self.get_downgradable_properties()
+                    if len(downgradable_properties) != 0:
+                        possible_commands.append({'type': 'pickProp', 'props': downgradable_properties})
                 elif chance_cell.card == 'Color Upgrade' or chance_cell.card == 'Color Downgrade':
-                    possible_commands.append({'type': 'pickColor'})
+                    user_colors = self.get_color_properties(user)
+                    if len(user_colors) != 0:
+                        possible_commands.append({'type': 'pickColor', 'colors': user_colors})
                 else:
                     chance_cell.applyChanceCard(None, user, self)
 
@@ -322,19 +377,9 @@ class Board:
                         if user.budget < 0:
                             self.started = False
                             raise Exception("User {} is bankrupt".format(user.id))
-            elif user.inJail:
-                if user.budget > self.jailbail or user.hasJailFreeCard:
-                    possible_commands.append({'type': 'bail'})
-                    user.jailTurns += 1
-                else:
-                    if user.jailTurns > 1:
-                        user.jailTurns = 0
-                        user.inJail = False
-                    else:
-                        user.jailTurns += 1
 
             elif self.cells[user.location].type == "gotojail":
-                self.cells[user.location].goto_jail(user, user.location)
+                self.cells[user.location].goto_jail(user, jail_location=self.jail_cell_index)
             elif self.cells[user.location].type == "tax":
                 tax_cell = self.cells[user.location]
                 tax_cell.pay_tax(user)
@@ -347,10 +392,11 @@ class Board:
 
     def determine_next_user(self):
 
-        if self.lastCommand is not None and self.lastCommand['type'] != "roll" and self.lastCommand['type'] != 'bail':
+        if self.turn_changed and not self.first_roll:
             last_user = self.userTurn.pop(0)
             self.userTurn.append(last_user)
 
+        self.first_roll = False
         return self.users[self.userTurn[0]]
 
     def __str__(self):
