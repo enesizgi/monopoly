@@ -11,6 +11,7 @@ import random
 
 
 # Main board class
+
 class Board:
     def __init__(self, file):
 
@@ -229,8 +230,13 @@ class Board:
         # if the user is on teleport cell and wants to teleport, ask the user to enter a destination and call the
         # teleport method of the teleport cell
         elif command['type'] == "teleport":
-            destination = int(input(f'Enter your destination between 0 and {len(self.cells) - 1}:\n'))
+            possible_cells = self.cells[user.location].get_possible_cells_to_teleport(self, user)
+            for i, cell in enumerate(possible_cells):
+                print(f'{i}: {cell.name}')
+
+            destination = int(input('Select possible destination above: \n'))
             self.cells[user.location].teleport(user, destination)
+            self.turn_changed = False
 
     def getPropertiesByColor(self, color):
         """

@@ -45,6 +45,7 @@ class User:
         # check if user is passing start
         if new_location > cell_count:
             self.budget += salary
+            print(f'You passed start and earned {salary}!')
         self.location = new_location % cell_count
 
     def get(self):
