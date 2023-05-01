@@ -9,9 +9,21 @@ from User import User
 from cell.GotoJail import GotoJail
 import random
 
+def singleton(cls):
+    """Decorator to make a class singleton"""
+    instances = {}
+
+    def getinstance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+
+        return instances[cls]
+
+    return getinstance
+
 
 # Main board class
-
+@singleton
 class Board:
     def __init__(self, file):
 
@@ -27,6 +39,10 @@ class Board:
         self.userTurn = []
         self.turn_changed = True
         self.first_roll = True
+
+        for attr in vars(self):
+            if not hasattr(self, attr):
+                raise Exception("Board class is a singleton. Use Board.getinstance() instead.")
 
         with open(file) as f:
             data = json.load(f)
