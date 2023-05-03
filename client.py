@@ -27,6 +27,11 @@ class Client(Cmd):
         self.s.send(request.encode())
         print(self.s.recv(1024).decode())
 
+    def do_createinstance(self, arg):
+        """Creates a new instance"""
+        self.s.send('new'.encode())
+        print(self.s.recv(1024).decode())
+
     def do_attach(self, arg):
         """Attaches a user to the game (args: board_id)"""
         self.s.send(f'attach {arg}'.encode())
@@ -37,6 +42,11 @@ class Client(Cmd):
         self.s.send(f'detach {arg}'.encode())
         print(self.s.recv(1024).decode())
 
+    def do_ready(self, arg):
+        """Sets the user as ready"""
+        self.s.send('ready'.encode())
+        print('Waiting for other players to be ready...')
+        print(self.s.recv(1024).decode())
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

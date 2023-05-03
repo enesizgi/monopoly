@@ -15,7 +15,6 @@ user_id_counter = 0
 board_id_counter = 0
 
 
-
 class Monitor:
     def __init__(self):
         self.user_id_counter_lock = RLock()
@@ -66,8 +65,8 @@ class Monitor:
 
 monitor = Monitor()
 
-def new():
 
+def create_new_instance():
     monitor.lock_board_id_counter()
     global board_id_counter
     instance = Board(file='input.json', board_id=board_id_counter)
@@ -94,10 +93,10 @@ def get_list_of_instances():
 
 
 def agent(c, addr):
-
     c.send(f'{addr} connected'.encode())
     is_auth = False
     user = None
+    instance: Board = None
 
     request = c.recv(1024).decode()
     while request != '':
@@ -128,8 +127,14 @@ def agent(c, addr):
             elif request[0] == 'attach':
                 choice = int(request[1])
                 monitor.lock_instance_array()
-                list_of_instances[choice].attach(user)
+                instance = list_of_instances[choice]
                 monitor.unlock_instance_array()
+
+                with instance.lock:
+                    if instance.started:
+                        c.send('Board has been started'.encode())
+                        continue
+                    instance.attach(user)
                 c.send('Attached'.encode())
 
             elif request[0] == 'detach':
@@ -138,13 +143,48 @@ def agent(c, addr):
                     c.send('You are not attached to any board'.encode())
                     continue
 
-                monitor.lock_instance_array()
-                list_of_instances[user.attached_to].detach(user)
-                monitor.unlock_instance_array()
+                with instance.lock:
+                    instance.detach(user)
+
                 c.send('Detached'.encode())
+
+            elif request[0] == 'new':
+                create_new_instance()
+                c.send('New Board Created'.encode())
+
+            elif request[0] == 'ready':
+                if user.attached_to is None:
+                    c.send('You are not attached to any board'.encode())
+                    continue
+
+                with instance.lock:
+                    instance.ready(user)
+                    while not instance.started:
+                        instance.condition.wait()
+
+                c.send('Game Started'.encode())
+                break
 
         request = c.recv(1024).decode()
 
+    while True:
+        with instance.lock:
+            current_turn = instance.determine_next_user()
+
+            while current_turn.id != user.id:
+                c.send(f'{current_turn.username} is playing'.encode())
+
+                # check for multiple conditions maybe
+                instance.condition.wait()
+
+            # message queue maybe
+            # callback and turncb check maybe
+            c.send(f'Your turn'.encode())
+            possible_commands = instance.get_possible_commands(user)
+            c.send(f'Possible Commands: {possible_commands}'.encode())
+            command = c.recv(1024).decode()
+
+            # turn here ...
 
 
 if __name__ == '__main__':
@@ -154,7 +194,7 @@ if __name__ == '__main__':
     s.bind(('localhost', int(port)))
     s.listen(5)
 
-    new()
+    create_new_instance()
 
     print('Server is running...')
     while True:

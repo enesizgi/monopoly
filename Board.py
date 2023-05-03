@@ -8,9 +8,7 @@ from cell.Start import Start
 from User import User
 from cell.GotoJail import GotoJail
 import random
-from socket import *
-from threading import Thread
-import time
+from threading import *
 
 
 # Main board class
@@ -24,12 +22,14 @@ class Board():
 
         self.users = {}  # holds all the users, used dictionary for easy access (key = user_id)
         self.cells = []  # holds all the cells
-        self.callbacks = {}  # holds all the callbacks assigned to each user
         self.started = False  # boolean to check if the game has started, is used in main game loop
         self.userTurn = []
         self.turn_changed = True
         self.first_roll = True
         self.id = board_id
+        self.lock = RLock()
+        self.condition = Condition(self.lock)
+        self.ready_count = 0
 
         with open(file) as f:
             data = json.load(f)
@@ -76,7 +76,6 @@ class Board():
         :return:
         """
         self.users[user.id] = user
-        self.callbacks[user.id] = callback
         user.attached_to = self.id
         self.userTurn.append(user.id)
 
@@ -135,12 +134,12 @@ class Board():
         :return:
         """
         user.ready = True
-        if all(user.ready for user in self.users.values()):
-            pass
-            # print('Game started')
-            # self.start()
+        self.ready_count += 1
+        if self.ready_count == len(self.users):
+            self.started = True
 
-    def get_random_dice(self):
+    @classmethod
+    def get_random_dice(cls):
         """
         Returns a random dice roll
         :return:
