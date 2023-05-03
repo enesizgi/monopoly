@@ -19,6 +19,7 @@ class User:
         self.callback = None
         self.turncb = None
         self.ready = False
+        self.attached_to = None
 
         # Authentication related
         self.username = username

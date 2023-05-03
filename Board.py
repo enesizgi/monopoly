@@ -13,11 +13,9 @@ from threading import Thread
 import time
 
 
-
-
 # Main board class
-class Board(Thread):
-    def __init__(self, file, sock, board_id):
+class Board():
+    def __init__(self, file, board_id):
 
         """
         Constructor for the board class. Takes in a json file and parses it to create the board.
@@ -31,10 +29,7 @@ class Board(Thread):
         self.userTurn = []
         self.turn_changed = True
         self.first_roll = True
-        self.sock = sock
         self.id = board_id
-
-        print('Board init running...')
 
         with open(file) as f:
             data = json.load(f)
@@ -65,13 +60,6 @@ class Board(Thread):
                     self.goto_jail_index = index
                     self.cells.append(GotoJail(index, cell['type']))
 
-        Thread.__init__(self)
-
-    def run(self) -> None:
-        print('Board thread running...')
-        while True:
-            time.sleep(2)
-            # print('Board thread running...')
 
     def get_user_count(self):
         """Returns the number of users in the game"""
@@ -89,6 +77,7 @@ class Board(Thread):
         """
         self.users[user.id] = user
         self.callbacks[user.id] = callback
+        user.attached_to = self.id
         self.userTurn.append(user.id)
 
         # callback(self.getboardstate())
@@ -109,6 +98,7 @@ class Board(Thread):
 
             user.ready = False
         self.users.pop(user.id)
+        user.attached_to = None
 
     def getuserstate(self, user):
         """
@@ -289,33 +279,6 @@ class Board(Thread):
 
         return user_colors
 
-    # def start(self):
-        """
-        Method containing the main game loop.
-        :return:
-        """
-        # self.started = True
-        # while self.started:
-        #     # find which user's turn it is and get the possible commands for that user
-        #     user = self.determine_next_user()
-        #     possible_commands = []
-        #
-        #     # inserted a try except block to catch any bankruptcy exceptions
-        #     try:
-        #         possible_commands = self.get_possible_commands(user)
-        #     except Exception as e:
-        #         print(e)
-        #         return
-        #     finally:
-        #
-        #         # if there are possible commands, notify the user and execute the selected command
-        #         if len(possible_commands) != 0:
-        #             selected_command = user.notifyTurn(possible_commands)
-        #             self.turn(user, selected_command)
-        #
-        #         # at the end of each turn, call the callback functions of the users
-        #         for callback in self.callbacks.values():
-        #             callback(self.getboardstate())
 
     def get_possible_commands(self, user):
         """

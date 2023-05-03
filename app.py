@@ -15,143 +15,136 @@ user_id_counter = 0
 board_id_counter = 0
 
 
-lock1 = Lock()
-cond = Condition(lock1)
-
 
 class Monitor:
     def __init__(self):
-        self.lock = Lock()
+        self.user_id_counter_lock = RLock()
+        self.board_id_counter_lock = RLock()
+        self.instance_lock = RLock()
 
-    def insert_instance(self, instance):
-        with self.lock:
-            global list_of_instances
-            list_of_instances[instance.id] = instance
+        self.user_id_state = True
+        self.board_id_state = True
+        self.instance_state = True
 
-    def increase_counter(self):
-        with self.lock:
-            global user_id_counter
-            user_id_counter += 1
+        self.user_id_condition = Condition(self.user_id_counter_lock)
+        self.board_id_condition = Condition(self.board_id_counter_lock)
+        self.instance_condition = Condition(self.instance_lock)
 
-    def decrease_counter(self):
-        with self.lock:
-            global user_id_counter
-            user_id_counter -= 1
+    def lock_instance_array(self):
+        with self.instance_lock:
+            while not self.instance_state:
+                self.instance_condition.wait()
+            self.instance_state = False
 
-    def create_board(self, file, sock):
-        with self.lock:
-            global board_id_counter
-            board = Board(file=file, sock=sock, board_id=board_id_counter)
-            board_id_counter += 1
-            return board
+    def unlock_instance_array(self):
+        with self.instance_lock:
+            self.instance_state = True
+            self.instance_condition.notify_all()
 
-    def create_user(self, username):
-        with self.lock:
-            global user_id_counter
-            user = User(username=username, user_id=user_id_counter)
-            user_id_counter += 1
-            return user
+    def lock_user_id_counter(self):
+        with self.user_id_counter_lock:
+            while not self.user_id_state:
+                self.user_id_condition.wait()
+            self.user_id_state = False
 
-    def attach_user(self, board_id, user):
-        global list_of_instances
-        with self.lock:
-            inst = list_of_instances[board_id]
-            if inst.get_user_count() == 4:
-                return False
-            inst.attach(user)
-            if inst.get_user_count() == 4:
-                new()
-            return inst
+    def unlock_user_id_counter(self):
+        with self.user_id_counter_lock:
+            self.user_id_state = True
+            self.user_id_condition.notify_all()
+
+    def lock_board_id_counter(self):
+        with self.board_id_counter_lock:
+            while not self.board_id_state:
+                self.board_id_condition.wait()
+            self.board_id_state = False
+
+    def unlock_board_id_counter(self):
+        with self.board_id_counter_lock:
+            self.board_id_state = True
+            self.board_id_condition.notify_all()
 
 
 monitor = Monitor()
 
-
 def new():
-    # randomly create port from 1000 ro 9999 except 1234 use random
-    port = random.randint(1235, 9999)
 
-    s = socket(AF_INET, SOCK_STREAM)
-    s.bind(('localhost', port))
+    monitor.lock_board_id_counter()
+    global board_id_counter
+    instance = Board(file='input.json', board_id=board_id_counter)
+    board_id_counter += 1
+    monitor.unlock_board_id_counter()
 
-    instance = monitor.create_board('input.json', s)
-    # list_of_instances.append(instance)
-    monitor.insert_instance(instance)
+    monitor.lock_instance_array()
+    list_of_instances[instance.id] = instance
+    monitor.unlock_instance_array()
     print('new function is running...')
-    instance.start()
 
 
 def get_list_of_instances():
-    return list_of_instances
-
-
-# list_of_instances[i].
-
-def client_thread(port):
-    with lock1:
-        s = socket(AF_INET, SOCK_STREAM)
-        input('Press enter to connect to server')
-        while True:
-            try:
-                s.connect(('localhost', int(port)))
-                break
-            except:
-                time.sleep(1)
-
-        print(s.recv(1024).decode())
-        username, password = input('Enter username and password with a space: ').split(' ')
-        s.send(f'{username} {password}'.encode())
-
-        # get the list of available instances
-        print(s.recv(1024).decode())
-
-        # time.sleep(1)
-
-        command = input('Enter room: ')
-        s.send(command.encode())
-
-        cond.wait()
-
+    ret_val = []
+    monitor.lock_instance_array()
+    for instance in list_of_instances.values():
+        ret_val.append({
+            'id': instance.id,
+            'started': instance.started,
+            'users': [user.username for user in instance.users.values()],
+        })
+    monitor.unlock_instance_array()
+    return ret_val
 
 
 def agent(c, addr):
-    global user_id_counter
-    print('Got connection from', addr)
-    c.send('Provide Authentication'.encode())
-    username, password = c.recv(1024).decode().split(' ')
-    user = monitor.create_user(username=username)
-    if not user.auth(password):
-        c.send('Authentication Failed'.encode())
-        c.close()
 
-    ll = ''.join([list_of_instances[i].getboardinfo() for i in list_of_instances.keys()])
-    c.send(f"Auth successful. Select room to join.\n{ll}".encode())
+    c.send(f'{addr} connected'.encode())
+    is_auth = False
+    user = None
 
-    # send the enumareted list of instances
-    choice = int(c.recv(1024).decode())
-    print(choice)
+    request = c.recv(1024).decode()
+    while request != '':
+        request = request.split(' ')
+        if request[0] == 'auth':
+            username = request[1]
+            password = request[2]
+            monitor.lock_user_id_counter()
+            global user_id_counter
+            user = User(username=username, user_id=user_id_counter)
+            user_id_counter += 1
+            monitor.unlock_user_id_counter()
+            if not user.auth(password):
+                c.send('Authentication Failed'.encode())
+                c.close()
+            else:
+                c.send('Authentication Successful'.encode())
+                is_auth = True
+        else:
 
-    monitor.attach_user(choice, user)
+            if not is_auth:
+                c.send('You are not authenticated. Please authenticate!'.encode())
 
-    # while choice != '':
-    #     if choice == 'P':
-    #         for instance in list_of_instances:
-    #             if instance.get_user_count() < 4:
-    #                 inst = instance
-    #                 instance.attach(user)
-    #                 break
-    #         else:
-    #             new()
-    #
-    #     elif choice == 'J':
-    #         pass
-    #     elif choice == 'L':
-    #         c.send(str(list_of_instances).encode())
-    #
-    #     choice = c.recv(1024).decode()
-    #     print(choice)
+            elif request[0] == 'getinstances':
+                ll = ''.join([str(i) for i in get_list_of_instances()])
+                c.send(ll.encode())
 
-    c.close()
+            elif request[0] == 'attach':
+                choice = int(request[1])
+                monitor.lock_instance_array()
+                list_of_instances[choice].attach(user)
+                monitor.unlock_instance_array()
+                c.send('Attached'.encode())
+
+            elif request[0] == 'detach':
+
+                if user.attached_to is None:
+                    c.send('You are not attached to any board'.encode())
+                    continue
+
+                monitor.lock_instance_array()
+                list_of_instances[user.attached_to].detach(user)
+                monitor.unlock_instance_array()
+                c.send('Detached'.encode())
+
+        request = c.recv(1024).decode()
+
 
 
 if __name__ == '__main__':
@@ -163,12 +156,7 @@ if __name__ == '__main__':
 
     new()
 
-    client = Thread(target=client_thread, args=(port,))
-    client.start()
-
-    client1 = Thread(target=client_thread, args=(port,))
-    client1.start()
-
+    print('Server is running...')
     while True:
         c, addr = s.accept()
         t = Thread(target=agent, args=(c, addr))
