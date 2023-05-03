@@ -6,7 +6,7 @@ class User:
     """
     This class represents a user in the game.
     """
-    def __init__(self, initial_budget: int, user_id: int, username=None, email=None, fullname=None, passwd=None):
+    def __init__(self, initial_budget: int = None, user_id: int = None, username=None, email=None, fullname=None, passwd=None):
 
         # Game related
         self.id = user_id
@@ -25,6 +25,8 @@ class User:
         self.email = email
         self.fullname = fullname
         self.passwd = passwd
+
+    #ready can be moved here
 
     def move(self, dice, cell_count, salary):
         """
@@ -52,7 +54,7 @@ class User:
         return self.to_json()
 
     def auth(self, plainpass):
-        pass
+        return True
 
     def checksession(self, token):
         pass

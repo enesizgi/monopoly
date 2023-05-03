@@ -8,24 +8,16 @@ from cell.Start import Start
 from User import User
 from cell.GotoJail import GotoJail
 import random
+from socket import *
+from threading import Thread
+import time
 
-def singleton(cls):
-    """Decorator to make a class singleton"""
-    instances = {}
 
-    def getinstance(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-
-        return instances[cls]
-
-    return getinstance
 
 
 # Main board class
-@singleton
-class Board:
-    def __init__(self, file):
+class Board(Thread):
+    def __init__(self, file, sock, board_id):
 
         """
         Constructor for the board class. Takes in a json file and parses it to create the board.
@@ -39,10 +31,10 @@ class Board:
         self.userTurn = []
         self.turn_changed = True
         self.first_roll = True
+        self.sock = sock
+        self.id = board_id
 
-        for attr in vars(self):
-            if not hasattr(self, attr):
-                raise Exception("Board class is a singleton. Use Board.getinstance() instead.")
+        print('Board init running...')
 
         with open(file) as f:
             data = json.load(f)
@@ -73,11 +65,20 @@ class Board:
                     self.goto_jail_index = index
                     self.cells.append(GotoJail(index, cell['type']))
 
+        Thread.__init__(self)
+
+    def run(self) -> None:
+        print('Board thread running...')
+        while True:
+            time.sleep(2)
+            # print('Board thread running...')
+
     def get_user_count(self):
         """Returns the number of users in the game"""
         return len(list(self.users.keys()))
 
-    def attach(self, user: User, callback, turncb):
+
+    def attach(self, user: User, callback=None, turncb=None):
 
         """
         Attaches a user to the board. This is called when a user joins the game.
@@ -90,7 +91,7 @@ class Board:
         self.callbacks[user.id] = callback
         self.userTurn.append(user.id)
 
-        callback(self.getboardstate())
+        # callback(self.getboardstate())
 
     def detach(self, user):
         """
@@ -288,33 +289,33 @@ class Board:
 
         return user_colors
 
-    def start(self):
+    # def start(self):
         """
         Method containing the main game loop.
         :return:
         """
-        self.started = True
-        while self.started:
-            # find which user's turn it is and get the possible commands for that user
-            user = self.determine_next_user()
-            possible_commands = []
-
-            # inserted a try except block to catch any bankruptcy exceptions
-            try:
-                possible_commands = self.get_possible_commands(user)
-            except Exception as e:
-                print(e)
-                return
-            finally:
-
-                # if there are possible commands, notify the user and execute the selected command
-                if len(possible_commands) != 0:
-                    selected_command = user.notifyTurn(possible_commands)
-                    self.turn(user, selected_command)
-
-                # at the end of each turn, call the callback functions of the users
-                for callback in self.callbacks.values():
-                    callback(self.getboardstate())
+        # self.started = True
+        # while self.started:
+        #     # find which user's turn it is and get the possible commands for that user
+        #     user = self.determine_next_user()
+        #     possible_commands = []
+        #
+        #     # inserted a try except block to catch any bankruptcy exceptions
+        #     try:
+        #         possible_commands = self.get_possible_commands(user)
+        #     except Exception as e:
+        #         print(e)
+        #         return
+        #     finally:
+        #
+        #         # if there are possible commands, notify the user and execute the selected command
+        #         if len(possible_commands) != 0:
+        #             selected_command = user.notifyTurn(possible_commands)
+        #             self.turn(user, selected_command)
+        #
+        #         # at the end of each turn, call the callback functions of the users
+        #         for callback in self.callbacks.values():
+        #             callback(self.getboardstate())
 
     def get_possible_commands(self, user):
         """
@@ -439,5 +440,11 @@ class Board:
         self.first_roll = False
         return self.users[self.userTurn[0]]
 
+    def getboardinfo(self):
+        """
+        Returns the board info
+        :return: board info
+        """
+        return json.dumps({'id': self.id,'started': self.started, 'users': [user.get() for user in self.users.values()]})
     def __str__(self):
-        return f'{self.cells} {self.upgrade} {self.teleport} {self.jailbail} {self.tax} {self.lottery} {self.salary}'
+        return f'Board id:{self.id} {self.cells} {self.upgrade} {self.teleport} {self.jailbail} {self.tax} {self.lottery} {self.salary}'
