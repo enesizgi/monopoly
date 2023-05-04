@@ -1,6 +1,7 @@
 import argparse
 from cmd import Cmd
 from socket import *
+from TCPMessage import TCPCommand, TCPNotification
 
 
 class Client(Cmd):
@@ -21,54 +22,49 @@ class Client(Cmd):
     def do_auth(self, arg):
         """Authenticates the user (args: username, password)"""
         username, password = arg.split(' ')
-        self.s.send(f'auth {username} {password}'.encode())
-        print(self.s.recv(1024).decode())
+        self.s.send(TCPCommand("auth", [username, password]).make_command().encode())
+        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
 
     def do_getinstances(self, arg):
         """Gets the list of available instances"""
-        request = 'getinstances'
-        self.s.send(request.encode())
-        print(self.s.recv(1024).decode())
+        self.s.send(TCPCommand("getinstances").make_command().encode())
+        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
 
     def do_createinstance(self, arg):
         """Creates a new instance"""
-        self.s.send('new'.encode())
-        print(self.s.recv(1024).decode())
+        self.s.send(TCPCommand("new").make_command().encode())
+        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
 
     def do_attach(self, arg):
         """Attaches a user to the game (args: board_id)"""
-        self.s.send(f'attach {arg}'.encode())
-        print(self.s.recv(1024).decode())
+        self.s.send(TCPCommand("attach", [arg]).make_command().encode())
+        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
 
     def do_detach(self, arg):
         """Detaches a user from the game (args: user_id)"""
-        self.s.send(f'detach {arg}'.encode())
-        print(self.s.recv(1024).decode())
+        self.s.send(TCPCommand("detach").make_command().encode())
+        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
 
     def do_ready(self, arg):
         """Sets the user as ready"""
-        self.s.send('ready'.encode())
+        self.s.send(TCPCommand("ready").make_command().encode())
         print('Waiting for other players to be ready...')
-        msg = self.s.recv(1024).decode()
-        print(msg)
+        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
         # print(self.s.recv(1024).decode())
 
-        self.wait_notification()
+        self.wait_message()
 
-    def wait_notification(self):
-        notification = self.s.recv(1024).decode()
-        print(notification)
-        while notification.startswith('N'):
-            notification = self.s.recv(1024).decode()
-            print('Notification: ', notification)
+    def wait_message(self):
+        message = TCPNotification.parse_message(self.s.recv(1024).decode())
+        message.print_message()
+        while message.message_type == "notification":
+            message = TCPNotification.parse_message(self.s.recv(1024).decode())
+            message.print_message()
+
 
     def do_turn(self, arg):
-        s.send(arg.encode())
-        self.wait_notification()
-
-
-
-
+        s.send(TCPCommand("turn", [arg]).make_command().encode())
+        self.wait_message()
 
 
 if __name__ == '__main__':

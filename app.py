@@ -3,6 +3,7 @@ import random
 from socket import *
 from User import User
 from threading import *
+from TCPMessage import TCPNotification, TCPCommand
 
 from Board import Board
 import argparse
@@ -98,63 +99,62 @@ def agent(c, addr):
     user = None
     instance: Board = None
 
-    request = c.recv(1024).decode()
-    while request != '':
-        request = request.split(' ')
-        if request[0] == 'auth':
-            username = request[1]
-            password = request[2]
+    request = TCPCommand.parse_command(c.recv(1024).decode())
+    while request.command != '':
+        if request.command == 'auth':
+            username = request.args[0]
+            password = request.args[1]
             monitor.lock_user_id_counter()
             global user_id_counter
             user = User(username=username, user_id=user_id_counter)
             user_id_counter += 1
             monitor.unlock_user_id_counter()
             if not user.auth(password):
-                c.send('Authentication Failed'.encode())
+                c.send(TCPNotification('notification', 'Authentication Failed').make_message().encode())
                 c.close()
             else:
-                c.send('Authentication Successful'.encode())
+                c.send(TCPNotification('notification', 'Authentication Successful').make_message().encode())
                 is_auth = True
         else:
 
             if not is_auth:
-                c.send('You are not authenticated. Please authenticate!'.encode())
+                c.send(TCPNotification('notification', 'Authentication Required').make_message().encode())
 
-            elif request[0] == 'getinstances':
+            elif request.command == 'getinstances':
                 ll = ''.join([str(i) for i in get_list_of_instances()])
-                c.send(ll.encode())
+                c.send(TCPNotification('notification', ll).make_message().encode())
 
-            elif request[0] == 'attach':
-                choice = int(request[1])
+            elif request.command == 'attach':
+                choice = int(request.args[0])
                 monitor.lock_instance_array()
                 instance = list_of_instances[choice]
                 monitor.unlock_instance_array()
 
                 with instance.lock:
                     if instance.started:
-                        c.send('Board has been started'.encode())
+                        c.send(TCPNotification('notification', 'Game has already started').make_message().encode())
                         continue
                     instance.attach(user)
-                c.send('Attached'.encode())
+                c.send(TCPNotification('notification', 'Attached to board').make_message().encode())
 
-            elif request[0] == 'detach':
+            elif request.command == 'detach':
 
                 if user.attached_to is None:
-                    c.send('You are not attached to any board'.encode())
+                    c.send(TCPNotification('notification', 'You are not attached to any board').make_message().encode())
                     continue
 
                 with instance.lock:
                     instance.detach(user)
 
-                c.send('Detached'.encode())
+                c.send(TCPNotification('notification', 'Detached from board').make_message().encode())
 
-            elif request[0] == 'new':
+            elif request.command == 'new':
                 create_new_instance()
-                c.send('New Board Created'.encode())
+                c.send(TCPNotification('notification', 'New Board Created').make_message().encode())
 
-            elif request[0] == 'ready':
+            elif request.command == 'ready':
                 if user.attached_to is None:
-                    c.send('You are not attached to any board'.encode())
+                    c.send(TCPNotification('notification', 'You are not attached to any board').make_message().encode())
                     continue
 
                 with instance.lock:
@@ -162,24 +162,26 @@ def agent(c, addr):
                     while not instance.started:
                         instance.condition.wait()
 
-                c.send('Game Started'.encode())
+                c.send(TCPNotification('notification', 'Game Started').make_message().encode())
                 break
 
-        request = c.recv(1024).decode()
+        request = TCPCommand.parse_command(c.recv(1024).decode())
 
     while True:
+
+        for message in user.message_queue:
+            c.send(message.make_message().encode())
+
         with instance.lock:
 
             while instance.current_user.id != user.id:
-                print('waiting for turn')
-                c.send(f'N {instance.current_user.username} is playing'.encode())
+                c.send(TCPNotification('notification', f'{instance.current_user.username} is playing').make_message().encode())
 
                 # check for multiple conditions maybe
                 instance.condition.wait()
                 # is callback called
-                if len(instance.message_queue) > 0:
-                    c.send(instance.message_queue.pop(0).encode())
-                    print('message queue is not empty')
+                for message in user.message_queue:
+                    c.send(message.make_message().encode())
 
             # message queue maybe
             # callback and turncb check maybe
@@ -187,13 +189,16 @@ def agent(c, addr):
             possible_commands = instance.get_possible_commands(user)
             print(possible_commands)
             if len(possible_commands) == 0:
-                c.send('No possible commands'.encode())
+                c.send(TCPNotification('notification', 'You have no possible moves').make_message().encode())
             else:
-                c.send(f'Possible Commands: {possible_commands}'.encode())
-                command = c.recv(1024).decode()
+                c.send(TCPNotification('callback', possible_commands).make_message().encode())
+                command = TCPCommand.parse_command(c.recv(1024).decode()).args[0]
                 command = {'type': command.split(' ')[0]}
                 instance.turn(user, command)
             instance.current_user = instance.determine_next_user()
+            instance.condition.notify_all()
+
+
 
 
 if __name__ == '__main__':
@@ -208,5 +213,6 @@ if __name__ == '__main__':
     print('Server is running...')
     while True:
         c, addr = s.accept()
+        print(f'Connection accepted from {addr}')
         t = Thread(target=agent, args=(c, addr))
         t.start()

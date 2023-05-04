@@ -20,6 +20,7 @@ class User:
         self.turncb = None
         self.ready = False
         self.attached_to = None
+        self.message_queue = []
 
         # Authentication related
         self.username = username
