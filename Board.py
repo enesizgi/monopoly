@@ -30,6 +30,8 @@ class Board():
         self.lock = RLock()
         self.condition = Condition(self.lock)
         self.ready_count = 0
+        self.message_queue = []
+        self.current_user = None
 
         with open(file) as f:
             data = json.load(f)
@@ -134,9 +136,12 @@ class Board():
         :return:
         """
         user.ready = True
+        user.budget = self.salary
         self.ready_count += 1
-        if self.ready_count == len(self.users):
+        if self.ready_count >= 2:
             self.started = True
+            self.current_user = self.determine_next_user()
+            self.condition.notify_all()
 
     @classmethod
     def get_random_dice(cls):
@@ -147,6 +152,10 @@ class Board():
         dice = random.randint(1, 6), random.randint(1, 6)
         print(f'You rolled {dice}!')
         return dice
+
+    def add_to_message_queue(self, message):
+        for i in range(4):
+            self.message_queue.append(message)
 
     def turn(self, user, command):
         """
@@ -173,7 +182,9 @@ class Board():
 
             user.move(dice, len(self.cells), self.salary)
             name = getattr(self.cells[user.location], 'name', '')
+            self.add_to_message_queue(f'{user.username} have arrived {self.cells[user.location].type} {name}!')
             print(f'You have arrived {self.cells[user.location].type} {name}!')
+            self.condition.notify_all()
             # return
 
         # if the user wants to bail out of jail, check if the user has a jail free card. If the user has a jail free

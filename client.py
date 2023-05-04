@@ -12,7 +12,10 @@ class Client(Cmd):
 
     def do_connect(self, arg):
         """Connects to the server"""
-        self.s.connect(('localhost', int(self.port)))
+        try:
+            self.s.connect(('localhost', int(self.port)))
+        except Exception as e:
+            print(e)
         print(self.s.recv(1024).decode())
 
     def do_auth(self, arg):
@@ -46,7 +49,27 @@ class Client(Cmd):
         """Sets the user as ready"""
         self.s.send('ready'.encode())
         print('Waiting for other players to be ready...')
-        print(self.s.recv(1024).decode())
+        msg = self.s.recv(1024).decode()
+        print(msg)
+        # print(self.s.recv(1024).decode())
+
+        self.wait_notification()
+
+    def wait_notification(self):
+        notification = self.s.recv(1024).decode()
+        print(notification)
+        while notification.startswith('N'):
+            notification = self.s.recv(1024).decode()
+            print('Notification: ', notification)
+
+    def do_turn(self, arg):
+        s.send(arg.encode())
+        self.wait_notification()
+
+
+
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

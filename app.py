@@ -169,22 +169,31 @@ def agent(c, addr):
 
     while True:
         with instance.lock:
-            current_turn = instance.determine_next_user()
 
-            while current_turn.id != user.id:
-                c.send(f'{current_turn.username} is playing'.encode())
+            while instance.current_user.id != user.id:
+                print('waiting for turn')
+                c.send(f'N {instance.current_user.username} is playing'.encode())
 
                 # check for multiple conditions maybe
                 instance.condition.wait()
+                # is callback called
+                if len(instance.message_queue) > 0:
+                    c.send(instance.message_queue.pop(0).encode())
+                    print('message queue is not empty')
 
             # message queue maybe
             # callback and turncb check maybe
-            c.send(f'Your turn'.encode())
+            # c.send(f'N Your turn'.encode())
             possible_commands = instance.get_possible_commands(user)
-            c.send(f'Possible Commands: {possible_commands}'.encode())
-            command = c.recv(1024).decode()
-
-            # turn here ...
+            print(possible_commands)
+            if len(possible_commands) == 0:
+                c.send('No possible commands'.encode())
+            else:
+                c.send(f'Possible Commands: {possible_commands}'.encode())
+                command = c.recv(1024).decode()
+                command = {'type': command.split(' ')[0]}
+                instance.turn(user, command)
+            instance.current_user = instance.determine_next_user()
 
 
 if __name__ == '__main__':
