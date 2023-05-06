@@ -1,12 +1,14 @@
 import json
+from threading import RLock
 
 
 class User:
-
     """
     This class represents a user in the game.
     """
-    def __init__(self, initial_budget: int = None, user_id: int = None, username=None, email=None, fullname=None, passwd=None):
+
+    def __init__(self, initial_budget: int = None, user_id: int = None, username=None, email=None, fullname=None,
+                 passwd=None):
 
         # Game related
         self.id = user_id
@@ -21,6 +23,7 @@ class User:
         self.ready = False
         self.attached_to = None
         self.message_queue = []
+        self.lock = RLock()
 
         # Authentication related
         self.username = username
@@ -28,7 +31,7 @@ class User:
         self.fullname = fullname
         self.passwd = passwd
 
-    #ready can be moved here
+    # ready can be moved here
 
     def move(self, dice, cell_count, salary):
         """

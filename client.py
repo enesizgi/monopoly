@@ -2,6 +2,7 @@ import argparse
 from cmd import Cmd
 from socket import *
 from TCPMessage import TCPCommand, TCPNotification
+from threading import Thread
 
 
 class Client(Cmd):
@@ -49,22 +50,35 @@ class Client(Cmd):
         """Sets the user as ready"""
         self.s.send(TCPCommand("ready").make_command().encode())
         print('Waiting for other players to be ready...')
-        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
+        # m = self.s.recv(1024).decode()
+        # TCPNotification.parse_message(m).print_message()
         # print(self.s.recv(1024).decode())
 
-        self.wait_message()
+        message_thread = Thread(target=self.wait_message, args=())
+        message_thread.start()
 
     def wait_message(self):
-        message = TCPNotification.parse_message(self.s.recv(1024).decode())
-        message.print_message()
-        while message.message_type == "notification":
-            message = TCPNotification.parse_message(self.s.recv(1024).decode())
-            message.print_message()
+        while True:
+            messages = self.s.recv(1024).decode()
+            print(messages)
+            # messages = []
+            if len(messages) > 0:
+                messages = json.loads(messages)
+            else:
+                messages = []
+            for message in messages:
+                message = TCPNotification.parse_message(message)
+                message.print_message()
+            # message = TCPNotification.parse_message(self.s.recv(1024).decode())
+        # message.print_message()
+        # while message.message_type == "notification":
+        #     message = TCPNotification.parse_message(self.s.recv(1024).decode())
+        #     message.print_message()
 
 
     def do_turn(self, arg):
         s.send(TCPCommand("turn", [arg]).make_command().encode())
-        self.wait_message()
+        #self.wait_message()
 
 
 if __name__ == '__main__':

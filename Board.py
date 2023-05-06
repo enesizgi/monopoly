@@ -141,7 +141,7 @@ class Board():
         if self.ready_count >= 2:
             self.started = True
             self.current_user = self.determine_next_user()
-            self.condition.notify_all()
+            self.add_to_message_queue(TCPNotification('notification','Game Started').make_message())
 
     @classmethod
     def get_random_dice(cls):
@@ -154,8 +154,10 @@ class Board():
         return dice
 
     def add_to_message_queue(self, message):
+
         for user in self.users.values():
-            user.message_queue.append(message)
+            with user.lock:
+                user.message_queue.append(message)
 
     def turn(self, user, command):
         """

@@ -11,8 +11,18 @@ class TCPNotification:
 
     @staticmethod
     def parse_message(message):
-        message = json.loads(message)
-        return TCPNotification(message["type"], message["message"])
+        try:
+            message = json.loads(message)
+            print(message)
+            return TCPNotification(message["type"], message["message"])
+        except Exception as e:
+            print(e)
+            message = {
+                "type": 'notification',
+                "message": 'Failed to parse message'
+            }
+            # message = json.loads("{'type': 'notification', 'message': 'Failed to parse message'}")
+            return TCPNotification(message["type"], message["message"])
 
     def print_message(self):
         print(self.message)
