@@ -39,7 +39,6 @@ class Teleport(Cell):
         :param destination: int
         :return:
         """
-        print(f'{user.username} is teleporting to {destination} for {self.teleport_fee}.')
         user.location = destination
         user.budget -= self.teleport_fee
 

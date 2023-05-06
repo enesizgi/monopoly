@@ -1,6 +1,8 @@
 import json
 from threading import RLock
 
+from TCPMessage import TCPNotification
+
 
 class User:
     """
@@ -112,6 +114,13 @@ class User:
             'budget': self.budget,
             'ready': self.ready
         }
+
+    def append_message(self, message):
+        with self.lock:
+            if isinstance(message, TCPNotification):
+                self.message_queue.append(message.make_message())
+            else:
+                self.message_queue.append(message)
 
     def __repr__(self):
         return self.get()

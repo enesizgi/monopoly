@@ -98,9 +98,18 @@ def notification_agent(c, user):
     while True:
         with user.lock:
             if len(user.message_queue) > 0:
-                c.send(json.dumps(user.message_queue).encode())
+                try:
+                    c.send(json.dumps(user.message_queue).encode())
+                except Exception as e:
+                    print(e)
+                    messages = []
+                    for i in user.message_queue:
+                        if isinstance(i, TCPNotification):
+                            messages.append(i.make_message())
+                        else:
+                            messages.append(i)
+                    c.send(json.dumps(messages).encode())
                 user.message_queue = []
-                time.sleep(1)
 
 
 def game_agent(c, user, instance):
@@ -109,20 +118,16 @@ def game_agent(c, user, instance):
             instance.condition.wait()
 
     while True:
-
-        # c.send(json.dumps(user.message_queue).encode())
-        # for message in user.message_queue:
-        #     c.send(message.make_message().encode())
-
         with instance.lock:
+            print('Instance lock acquired', user.username, instance.current_user.username)
 
             while instance.current_user.id != user.id:
-                user.message_queue.append(
-                    TCPNotification('notification', f'{instance.current_user.username} is playing').make_message())
-                # c.send(TCPNotification('notification', f'{instance.current_user.username} is playing').make_message().encode())
+                user.append_message(TCPNotification('notification', f'{instance.current_user.username} is playing'))
 
                 # check for multiple conditions maybe
+                print('Current user', instance.current_user.username)
                 instance.condition.wait()
+                print('Not blocking')
                 # is callback called
                 c.send(json.dumps(user.message_queue).encode())
 
@@ -130,23 +135,23 @@ def game_agent(c, user, instance):
             # callback and turncb check maybe
             # c.send(f'N Your turn'.encode())
             possible_commands = instance.get_possible_commands(user)
-            print(possible_commands)
+            print('possible_commands', possible_commands, user.username)
             if len(possible_commands) == 0:
-                user.message_queue.append(TCPNotification('notification', 'You have no possible moves').make_message())
-                c.send(json.dumps(user.message_queue).encode())
-                time.sleep(1)
-                # c.send(TCPNotification('notification', 'You have no possible moves').make_message().encode())
+                user.append_message(TCPNotification('notification', 'You have no possible moves'))
             else:
-                user.message_queue.append(TCPNotification('callback', possible_commands).make_message())
-                c.send(json.dumps(user.message_queue).encode())
-                time.sleep(1)
-                # c.send(TCPNotification('callback', possible_commands).make_message().encode())
-                # condition variable
-                # while not instance.current_user.id != user.id:
-                #     user.wait()
-                command = TCPCommand.parse_command(c.recv(1024).decode()).args[0]
-                command = {'type': command.split(' ')[0]}
-                instance.turn(user, command)
+                user.append_message(TCPNotification('notification', possible_commands))
+                while True:
+                    instance.condition.wait()
+                    for command in possible_commands:
+                        if command["type"] == user.current_command:
+                            command = {'type': user.current_command.split(' ')[0]}
+                            instance.turn(user, command)
+                            break
+                    else:
+                        message = f'Unavailable command. Commands: {possible_commands}'
+                        user.append_message(TCPNotification('notification', message))
+                        continue
+                    break
             instance.current_user = instance.determine_next_user()
             instance.condition.notify_all()
 
@@ -157,8 +162,9 @@ def agent(c, addr):
     user = None
     instance: Board = None
 
-    request = TCPCommand.parse_command(c.recv(1024).decode())
-    while request.command != '':
+    while True:
+        request = TCPCommand.parse_command(c.recv(1024).decode())
+        print('agent', request.command, request.args)
         if request.command == 'auth':
             username = request.args[0]
             password = request.args[1]
@@ -222,19 +228,14 @@ def agent(c, addr):
                 with instance.lock:
                     instance.ready(user)
 
-                    # while not instance.started:
-                    #     instance.condition.wait()
-
-                # c.send(TCPNotification('notification', 'Game Started').make_message().encode())
-                # time.sleep(1)
-
-                # break
-
-        request = TCPCommand.parse_command(c.recv(1024).decode())
-        
-
-
-    # condition variable .wait()
+            elif request.command == 'turn':
+                with instance.lock:
+                    if instance.current_user.id == user.id:
+                        with user.lock:
+                            user.current_command = request.args[0]
+                        instance.condition.notify_all()
+                    else:
+                        user.append_message(TCPNotification('notification', 'Not your turn'))
 
 
 if __name__ == '__main__':

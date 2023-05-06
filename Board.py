@@ -62,11 +62,9 @@ class Board():
                     self.goto_jail_index = index
                     self.cells.append(GotoJail(index, cell['type']))
 
-
     def get_user_count(self):
         """Returns the number of users in the game"""
         return len(list(self.users.keys()))
-
 
     def attach(self, user: User, callback=None, turncb=None):
 
@@ -141,7 +139,8 @@ class Board():
         if self.ready_count >= 2:
             self.started = True
             self.current_user = self.determine_next_user()
-            self.add_to_message_queue(TCPNotification('notification','Game Started').make_message())
+            self.add_to_message_queue(TCPNotification('notification', 'Game Started'))
+            self.condition.notify_all()
 
     @classmethod
     def get_random_dice(cls):
@@ -156,8 +155,7 @@ class Board():
     def add_to_message_queue(self, message):
 
         for user in self.users.values():
-            with user.lock:
-                user.message_queue.append(message)
+            user.append_message(message)
 
     def turn(self, user, command):
         """
@@ -186,7 +184,8 @@ class Board():
             user.move(dice, len(self.cells), self.salary)
             name = getattr(self.cells[user.location], 'name', '')
 
-            self.add_to_message_queue(TCPNotification("notification", f'{user.username} have arrived {self.cells[user.location].type} {name}!'))
+            self.add_to_message_queue(TCPNotification("notification",
+                                                      f'{user.username} have arrived {self.cells[user.location].type} {name}!'))
             # return
 
         # if the user wants to bail out of jail, check if the user has a jail free card. If the user has a jail free
@@ -255,6 +254,8 @@ class Board():
 
             destination = int(input('Select possible destination above: \n'))
             self.cells[user.location].teleport(user, destination)
+            message = f'{user.username} is teleporting to {destination} for {self.cells[user.location].teleport_fee}.'
+            self.add_to_message_queue(TCPNotification('notification', message))
             self.turn_changed = False
 
     def getPropertiesByColor(self, color):
@@ -290,7 +291,6 @@ class Board():
             user_colors.add(prop.color)
 
         return user_colors
-
 
     def get_possible_commands(self, user):
         """
@@ -343,6 +343,8 @@ class Board():
                 else:
                     prop = self.cells[user.location]
                     prop.payRent(self.users[prop.owner_id], user)
+                    message = f'{user.username} paid {prop.rents[prop.level]} to {self.users[prop.owner_id].username} for {prop.name}'
+                    self.add_to_message_queue(TCPNotification('notification', message))
 
                     if user.budget < 0:
                         self.started = False
@@ -360,6 +362,8 @@ class Board():
 
                 # randomly pick a chance card
                 chance_cell.getChanceCard()
+                message = f'{user.username} picked this chance card: {chance_cell.card}!'
+                self.add_to_message_queue(TCPNotification('notification', message))
 
                 # if the card is upgrade or downgrade, the user can pick a suitable property to upgrade or downgrade
                 if chance_cell.card == 'Upgrade':
@@ -420,6 +424,8 @@ class Board():
         Returns the board info
         :return: board info
         """
-        return json.dumps({'id': self.id,'started': self.started, 'users': [user.get() for user in self.users.values()]})
+        return json.dumps(
+            {'id': self.id, 'started': self.started, 'users': [user.get() for user in self.users.values()]})
+
     def __str__(self):
         return f'Board id:{self.id} {self.cells} {self.upgrade} {self.teleport} {self.jailbail} {self.tax} {self.lottery} {self.salary}'

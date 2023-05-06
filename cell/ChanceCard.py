@@ -31,7 +31,6 @@ class ChanceCard(Cell):
         :return: 
         """
         chance_card = random.choice(self.chanceCards)
-        print(f'You picked this chance card: {chance_card}!\n')
         self.card = chance_card
 
     def applyChanceCard(self, props: List[Property] = None, user: User = None, board=None):

@@ -99,7 +99,6 @@ class Demo(cmd.Cmd):
     def do_start(self, _arg):
         """Starts the game"""
         if all(user.ready for user in self.board.users.values()):
-            self.board.start()
             print("Game started")
 
 

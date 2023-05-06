@@ -72,8 +72,6 @@ class Property(Cell):
         resident.budget -= rent
         owner.budget += rent
 
-        print(f'{resident.username} paid {rent} to {owner.username} for {self.name}')
-
 
     def __repr__(self):
         return self.name + " " + str(self.location)
