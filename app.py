@@ -7,6 +7,7 @@ from TCPMessage import TCPNotification, TCPCommand
 
 from Board import Board
 import argparse
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', type=int, default=8000)
@@ -161,7 +162,6 @@ def agent(c, addr):
                     instance.ready(user)
                     while not instance.started:
                         instance.condition.wait()
-
                 c.send(TCPNotification('notification', 'Game Started').make_message().encode())
                 break
 
@@ -169,19 +169,20 @@ def agent(c, addr):
 
     while True:
 
-        for message in user.message_queue:
-            c.send(message.make_message().encode())
+        c.send(json.dumps(user.message_queue).encode())
+        # for message in user.message_queue:
+        #     c.send(message.make_message().encode())
 
         with instance.lock:
 
             while instance.current_user.id != user.id:
-                c.send(TCPNotification('notification', f'{instance.current_user.username} is playing').make_message().encode())
+                user.message_queue.append(TCPNotification('notification', f'{instance.current_user.username} is playing'))
+                # c.send(TCPNotification('notification', f'{instance.current_user.username} is playing').make_message().encode())
 
                 # check for multiple conditions maybe
                 instance.condition.wait()
                 # is callback called
-                for message in user.message_queue:
-                    c.send(message.make_message().encode())
+                c.send(json.dumps(user.message_queue).encode())
 
             # message queue maybe
             # callback and turncb check maybe
@@ -189,9 +190,11 @@ def agent(c, addr):
             possible_commands = instance.get_possible_commands(user)
             print(possible_commands)
             if len(possible_commands) == 0:
-                c.send(TCPNotification('notification', 'You have no possible moves').make_message().encode())
+                user.message_queue.append(TCPNotification('notification', 'You have no possible moves'))
+                # c.send(TCPNotification('notification', 'You have no possible moves').make_message().encode())
             else:
-                c.send(TCPNotification('callback', possible_commands).make_message().encode())
+                user.message_queue.append(TCPNotification('callback', possible_commands))
+                # c.send(TCPNotification('callback', possible_commands).make_message().encode())
                 command = TCPCommand.parse_command(c.recv(1024).decode()).args[0]
                 command = {'type': command.split(' ')[0]}
                 instance.turn(user, command)

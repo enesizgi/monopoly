@@ -1,4 +1,5 @@
 import argparse
+import json
 from cmd import Cmd
 from socket import *
 from TCPMessage import TCPCommand, TCPNotification
@@ -55,11 +56,22 @@ class Client(Cmd):
         self.wait_message()
 
     def wait_message(self):
-        message = TCPNotification.parse_message(self.s.recv(1024).decode())
-        message.print_message()
-        while message.message_type == "notification":
-            message = TCPNotification.parse_message(self.s.recv(1024).decode())
-            message.print_message()
+        while True:
+            messages = self.s.recv(1024).decode()
+            messages = json.loads(messages)
+            for message in messages:
+                message = TCPNotification.parse_message(message)
+                message.print_message()
+                if message.message_type != "notification":
+                    break
+            else:
+                continue
+            break
+            # message = TCPNotification.parse_message(self.s.recv(1024).decode())
+        # message.print_message()
+        # while message.message_type == "notification":
+        #     message = TCPNotification.parse_message(self.s.recv(1024).decode())
+        #     message.print_message()
 
 
     def do_turn(self, arg):

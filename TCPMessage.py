@@ -11,8 +11,12 @@ class TCPNotification:
 
     @staticmethod
     def parse_message(message):
-        message = json.loads(message)
-        return TCPNotification(message["type"], message["message"])
+        try:
+            message = json.loads(message)
+            print(message)
+            return TCPNotification(message["type"], message["message"])
+        except Exception as e:
+            print(e)
 
     def print_message(self):
         print(self.message)
@@ -28,6 +32,11 @@ class TCPCommand:
 
     @staticmethod
     def parse_command(command):
-        command = json.loads(command)
-        return TCPCommand(command['command'], command['args'])
+        try:
+            print(command)
+            command = json.loads(command)
+            print(command)
+            return TCPCommand(command['command'], command['args'])
+        except Exception as e:
+            print(e)
 
