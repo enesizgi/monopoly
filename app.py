@@ -7,6 +7,7 @@ from TCPMessage import TCPNotification, TCPCommand
 
 from Board import Board
 import argparse
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', type=int, default=8000)
