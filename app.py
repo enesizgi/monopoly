@@ -183,30 +183,32 @@ def game_agent(c, user, instance):
                 user.append_message(TCPNotification('notification', possible_commands))
                 while True:
                     instance.condition.wait()
-                    for command in possible_commands:
+                    with user.lock:
+                        for command in possible_commands:
 
-                        # If the user who has the turn decides to detach
-                        if user.current_command == "detach":
-                            return
-                        user.current_command = user.current_command.split(' ')
+                            # If the user who has the turn decides to detach
+                            if user.current_command == "detach":
+                                return
+                            if not isinstance(user.current_command, list):
+                                user.current_command = user.current_command.split(' ')
 
-                        # The following code segment parses the command for the turn method of the instance
-                        # and then calls the method.
-                        if command["type"] == user.current_command[0]:
-                            command_args = []
-                            if len(user.current_command) > 1:
-                                command_args = user.current_command[1:]
-                            command = {'type': user.current_command[0], "args": command_args}
-                            print(command, user.current_command)
-                            instance.turn(user, command)
-                            break
+                            # The following code segment parses the command for the turn method of the instance
+                            # and then calls the method.
+                            if command["type"] == user.current_command[0]:
+                                command_args = []
+                                if len(user.current_command) > 1:
+                                    command_args = user.current_command[1:]
+                                command = {'type': user.current_command[0], "args": command_args}
+                                print(command, user.current_command)
+                                instance.turn(user, command)
+                                break
 
-                    # If the user tries to execute a command that is not applicable at the moment
-                    else:
-                        message = f'Unavailable command. Commands: {possible_commands}'
-                        user.append_message(TCPNotification('notification', message))
-                        continue
-                    break
+                        # If the user tries to execute a command that is not applicable at the moment
+                        else:
+                            message = f'Unavailable command. Commands: {possible_commands}'
+                            user.append_message(TCPNotification('notification', message))
+                            continue
+                        break
             instance.current_user = instance.determine_next_user()
             instance.condition.notify_all()
 
@@ -307,12 +309,12 @@ def agent(c, addr):
 
             elif request.command == 'turn' and user.attached_to is not None:
                 with instance.lock:
-                    if instance.current_user.id == user.id:
-                        with user.lock:
+                    with user.lock:
+                        if instance.current_user.id == user.id:
                             user.current_command = request.args[0]
-                        instance.condition.notify_all()
-                    else:
-                        user.append_message(TCPNotification('notification', 'Not your turn'))
+                            instance.condition.notify_all()
+                        else:
+                            user.append_message(TCPNotification('notification', 'Not your turn'))
 
 
 if __name__ == '__main__':
