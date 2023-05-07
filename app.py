@@ -240,10 +240,8 @@ def agent(c, addr):
 
             elif request.command == 'getuserstate':
                 try:
-                    user = instance.users[int(request.args[0])]
-                    c.send(json.dumps([
-                        TCPNotification('notification', instance.getuserstate(user)).make_message()
-                    ]).encode())
+                    requested_user = instance.users[int(request.args[0])]
+                    user.append_message(TCPNotification('notification', instance.getuserstate(requested_user)))
                 except:
                     pass
 

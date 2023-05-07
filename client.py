@@ -25,33 +25,33 @@ class Client(Cmd):
             self.s.connect(('localhost', int(self.port)))
         except Exception as e:
             print(e)
-        print(self.s.recv(1024).decode())
+        print(self.s.recv(4096).decode())
 
     def do_auth(self, arg):
         """Authenticates the user (args: username, password)"""
         username, password = arg.split(' ')
         self.send_command(TCPCommand("auth", [username, password]))
-        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
+        TCPNotification.parse_message(self.s.recv(4096).decode()).print_message()
 
     def do_getinstances(self, _arg):
         """Gets the list of available instances"""
         self.send_command(TCPCommand("getinstances"))
-        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
+        TCPNotification.parse_message(self.s.recv(4096).decode()).print_message()
 
     def do_createinstance(self, _arg):
         """Creates a new instance"""
         self.send_command(TCPCommand("new"))
-        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
+        TCPNotification.parse_message(self.s.recv(4096).decode()).print_message()
 
     def do_attach(self, arg):
         """Attaches a user to the game (args: board_id)"""
         self.send_command(TCPCommand("attach", [arg]))
-        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
+        TCPNotification.parse_message(self.s.recv(4096).decode()).print_message()
 
     def do_detach(self, arg):
         """Detaches a user from the game (args: user_id)"""
         self.send_command(TCPCommand("detach"))
-        TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
+        TCPNotification.parse_message(self.s.recv(4096).decode()).print_message()
 
     def do_ready(self, arg):
         """Sets the user as ready"""
@@ -63,7 +63,7 @@ class Client(Cmd):
 
     def wait_message(self):
         while True:
-            messages = self.s.recv(1024).decode()
+            messages = self.s.recv(4096).decode()
             try:
                 if len(messages) > 0:
                     messages = json.loads(messages)
