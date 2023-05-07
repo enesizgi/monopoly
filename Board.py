@@ -79,8 +79,6 @@ class Board():
         user.attached_to = self.id
         self.userTurn.append(user.id)
 
-        # callback(self.getboardstate())
-
     def detach(self, user):
         """
         Detaches a user from the board. This is called when a user leaves the game.
@@ -114,7 +112,7 @@ class Board():
         :return: json string
         """
 
-        return json.dumps({
+        return {
             'users': [user.get() for user in self.users.values()],
             'cells': [cell.getstate() for cell in self.cells],
             'started': self.started,
@@ -125,7 +123,7 @@ class Board():
             'jailbail': self.jailbail,
             'tax': self.tax,
             'lottery': self.lottery,
-        }, indent=4)
+        }
 
     def ready(self, user):
         """
@@ -149,7 +147,6 @@ class Board():
         :return:
         """
         dice = random.randint(1, 6), random.randint(1, 6)
-        print(f'You rolled {dice}!')
         return dice
 
     def add_to_message_queue(self, message):
@@ -193,7 +190,7 @@ class Board():
         # method of the jail cell
         elif command['type'] == "bail":
             if user.hasJailFreeCard:
-                answer = input('Do you want to use your jail free card? (y/n)')
+                answer = command["args"][0]
                 if answer == 'y':
                     user.hasJailFreeCard = False
                     user.jailTurns = 0
@@ -202,18 +199,24 @@ class Board():
                 self.cells[user.location].pay_bail(user)
 
             self.turn_changed = False
-            print(self.getuserstate(user))
 
         # user picked up a chance card that is either upgrade or downgrade
         elif command['type'] == "pickProp":
 
             # print all possible properties that the user can upgrade or downgrade
-            for i, cell in enumerate(command['props']):
-                print(f'{i}: {cell.name}')
+
+            try:
+                prop = int(command['args'][0])
+                upgradable_properties = list(map(lambda x: x.location, self.get_upgradable_properties()))
+                if prop in upgradable_properties:
+                    self.cells[user.location].applyChanceCard([self.cells[prop]], user, self)
+
+            except Exception as e:
+                user.append_message(TCPNotification('notification', 'Wrong arguments'))
+
 
             # ask the user to select a property and apply the chance card to the property
-            prop = int(input('Select possible property: (0,1,2...)\n'))
-            self.cells[user.location].applyChanceCard([self.cells[prop]], user, self)
+
 
         # user picked up a chance card that is either color upgrade or color downgrade
         elif command['type'] == 'pickColor':
@@ -224,14 +227,14 @@ class Board():
                 user_colors.add(prop.color)
 
             # print all possible colors that the user can upgrade or downgrade
-            if len(user_colors) != 0:
-                for i, color in enumerate(user_colors):
-                    print(f'{i}: {color}')
 
                 # ask the user to select a color and apply the chance card to the properties of the color
-                prop = int(input('Select possible color to upgrade: (0,1,2...)\n'))
-                color_props = self.getPropertiesByColor(list(user_colors)[prop])
+            try:
+                prop = int(command["args"][0])
+                color_props = self.get_properties_by_color(list(user_colors)[prop])
                 self.cells[user.location].applyChanceCard(color_props, user, self)
+            except Exception as e:
+                print(e)
 
         # if the user is on a property cell and wants to buy the property, call the buyProperty method of the
         # property cell
@@ -252,13 +255,16 @@ class Board():
             for i, cell in enumerate(possible_cells):
                 print(f'{i}: {cell.name}')
 
-            destination = int(input('Select possible destination above: \n'))
-            self.cells[user.location].teleport(user, destination)
-            message = f'{user.username} is teleporting to {destination} for {self.cells[user.location].teleport_fee}.'
-            self.add_to_message_queue(TCPNotification('notification', message))
-            self.turn_changed = False
+            try:
+                destination = int(command["args"][0])
+                self.cells[user.location].teleport(user, destination)
+                message = f'{user.username} is teleporting to {destination} for {self.cells[user.location].teleport_fee}.'
+                self.add_to_message_queue(TCPNotification('notification', message))
+                self.turn_changed = False
+            except:
+                user.append_message(TCPNotification('notification', 'Wrong arguments'))
 
-    def getPropertiesByColor(self, color):
+    def get_properties_by_color(self, color):
         """
         Returns all the properties of the given color
         :param color: string
@@ -266,19 +272,22 @@ class Board():
         """
         return list(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.color == color, self.cells))
 
+    def get_property_state(self, iterable):
+        return list(map(lambda x: x.getstate(),iterable))
+
     def get_upgradable_properties(self):
         """
         Returns all the properties that can be upgraded
         :return: list of property cells
         """
-        return list(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 4, self.cells))
+        return self.get_property_state(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 4, self.cells))
 
     def get_downgradable_properties(self):
         """
         Returns all the properties that can be downgraded
         :return: list of property cells
         """
-        return list(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 0, self.cells))
+        return self.get_property_state(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 0, self.cells))
 
     def get_color_properties(self, user):
         """
@@ -353,7 +362,10 @@ class Board():
             # user lands on teleport cell
             elif self.cells[user.location].type == "teleport":
                 if user.budget > self.teleport:
-                    possible_commands.append({'type': 'teleport'})
+                    possible_commands.append({
+                        'type': 'teleport',
+                        'cells': self.cells[user.location].get_possible_cells_to_teleport(self, user)
+                    })
                     possible_commands.append({'type': 'skip'})
 
             # user lands on chance card cell

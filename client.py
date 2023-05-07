@@ -33,12 +33,12 @@ class Client(Cmd):
         self.send_command(TCPCommand("auth", [username, password]))
         TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
 
-    def do_getinstances(self, arg):
+    def do_getinstances(self, _arg):
         """Gets the list of available instances"""
         self.send_command(TCPCommand("getinstances"))
         TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
 
-    def do_createinstance(self, arg):
+    def do_createinstance(self, _arg):
         """Creates a new instance"""
         self.send_command(TCPCommand("new"))
         TCPNotification.parse_message(self.s.recv(1024).decode()).print_message()
@@ -65,8 +65,6 @@ class Client(Cmd):
         while True:
             messages = self.s.recv(1024).decode()
             try:
-                # print(messages)
-                # messages = []
                 if len(messages) > 0:
                     messages = json.loads(messages)
                 else:
@@ -80,6 +78,15 @@ class Client(Cmd):
 
     def do_turn(self, arg):
         self.send_command(TCPCommand("turn", [arg]))
+
+    def do_getboardstate(self, _arg):
+        """Gets the board state"""
+        self.send_command(TCPCommand("getboardstate"))
+
+    def do_getuserstate(self, arg):
+        """Gets the user state (args: user_id)"""
+        user_id = arg
+        self.send_command(TCPCommand("getuserstate", [user_id]))
 
 
 if __name__ == '__main__':

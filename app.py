@@ -143,8 +143,13 @@ def game_agent(c, user, instance):
                 while True:
                     instance.condition.wait()
                     for command in possible_commands:
-                        if command["type"] == user.current_command:
-                            command = {'type': user.current_command.split(' ')[0]}
+                        user.current_command = user.current_command.split(' ')
+                        if command["type"] == user.current_command[0]:
+                            command_args = []
+                            if len(user.current_command) > 1:
+                                command_args = user.current_command[1:]
+                            command = {'type': user.current_command[0], "args": command_args}
+                            print(command, user.current_command)
                             instance.turn(user, command)
                             break
                     else:
@@ -177,7 +182,6 @@ def agent(c, addr):
             monitor.unlock_user_id_counter()
             if not user.auth(password):
                 c.send(TCPNotification('notification', 'Authentication Failed').make_message().encode())
-                c.close()
             else:
                 c.send(TCPNotification('notification', 'Authentication Successful').make_message().encode())
                 is_auth = True
@@ -227,6 +231,21 @@ def agent(c, addr):
 
                 with instance.lock:
                     instance.ready(user)
+
+            elif request.command == 'getboardstate':
+                try:
+                    user.append_message(TCPNotification('notification', instance.getboardstate()))
+                except:
+                    pass
+
+            elif request.command == 'getuserstate':
+                try:
+                    user = instance.users[int(request.args[0])]
+                    c.send(json.dumps([
+                        TCPNotification('notification', instance.getuserstate(user)).make_message()
+                    ]).encode())
+                except:
+                    pass
 
             elif request.command == 'turn':
                 with instance.lock:
