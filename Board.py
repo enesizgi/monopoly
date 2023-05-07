@@ -13,7 +13,7 @@ from TCPMessage import TCPNotification
 
 
 # Main board class
-class Board():
+class Board:
     def __init__(self, file, board_id):
 
         """
