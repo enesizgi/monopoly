@@ -6,6 +6,8 @@
 
 **Project Description**
 
+**Phase 1**
+
 We have created several classes to make it easier to code this project.
 
 1. **Board Class:** This is our main class. It manages the game.
@@ -20,3 +22,12 @@ We have created several classes to make it easier to code this project.
    * **Start Class:** This class represents the start cell. Players start here. They get the start fee every time they pass this cell.
    * **Tax Class:** This class represents the tax cell. Player pays the tax fee when they come here.
    * **Teleport Class:** This class represents the teleport cell. Player can teleport to another cell by paying teleport fee when they come here.
+
+**Phase 2**
+
+We have included three new files for this phase to implement TCP communication between users
+and board. These files are:
+
+1. **client.py:** This class represents the client. It connects to the server and sends/receives messages to/from the server.
+2. **app.py:** This class represents the server. It listens to the clients and sends/receives messages to/from the clients.
+3. **TCPMessage.py:** This class represents the messages that are sent between the server and the clients.
