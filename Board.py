@@ -94,8 +94,19 @@ class Board():
                 prop.level = 0
 
             user.ready = False
-        self.users.pop(user.id)
-        user.attached_to = None
+        if len(self.users) > 0:
+            self.users.pop(user.id)
+        if len(self.userTurn) > 0:
+            self.userTurn.remove(user.id)
+        with user.lock:
+            user.attached_to = None
+            user.current_command = "detach"
+        if len(self.users) > 1:
+            self.current_user = self.determine_next_user()
+        else:
+            self.users = {}
+            self.userTurn = []
+        self.condition.notify_all()
 
     def getuserstate(self, user):
         """
@@ -200,6 +211,8 @@ class Board():
 
             self.turn_changed = False
 
+            self.add_to_message_queue(TCPNotification('notification', f'{user.username} has bailed out from jail'))
+
         # user picked up a chance card that is either upgrade or downgrade
         elif command['type'] == "pickProp":
 
@@ -210,6 +223,7 @@ class Board():
                 upgradable_properties = list(map(lambda x: x.location, self.get_upgradable_properties()))
                 if prop in upgradable_properties:
                     self.cells[user.location].applyChanceCard([self.cells[prop]], user, self)
+                    self.add_to_message_queue(TCPNotification('notification', f'{user.username} has used chance card on {self.cells[prop].name}'))
 
             except Exception as e:
                 user.append_message(TCPNotification('notification', 'Wrong arguments'))
@@ -233,6 +247,7 @@ class Board():
                 prop = int(command["args"][0])
                 color_props = self.get_properties_by_color(list(user_colors)[prop])
                 self.cells[user.location].applyChanceCard(color_props, user, self)
+                self.add_to_message_queue(TCPNotification('notification', f'{user.username} has used chance card on {prop} properties'))
             except Exception as e:
                 print(e)
 
@@ -240,13 +255,14 @@ class Board():
         # property cell
         elif command['type'] == "buy":
             self.cells[user.location].buyProperty(user)
-            print(self.getuserstate(user))
+            self.add_to_message_queue(TCPNotification('notification', f'{user.username} bought {self.cells[user.location].name}'))
 
         # if the user is on a property cell and wants to upgrade the property, call the upgrade method of the property
         # cell
         elif command['type'] == "upgrade":
             self.cells[user.location].upgrade(self.upgrade, user)
-            print(self.getuserstate(user))
+            self.add_to_message_queue(TCPNotification('notification', f'{user.username} upgraded {self.cells[user.location].name}'))
+
 
         # if the user is on teleport cell and wants to teleport, ask the user to enter a destination and call the
         # teleport method of the teleport cell
