@@ -2,6 +2,7 @@ import json
 from threading import RLock
 
 from TCPMessage import TCPNotification
+from hashlib import sha256
 
 
 class User:
@@ -60,8 +61,20 @@ class User:
     def get(self):
         return self.to_json()
 
-    def auth(self, plainpass):
-        return True
+    def auth(self, plainpass: str):
+        file = open('db.json', 'r')
+        try:
+            m = sha256()
+            m.update(plainpass.encode())
+            passwords = file.read()
+            passwords = json.loads(passwords)
+            if passwords[self.username] == m.hexdigest():
+                file.close()
+                return True
+        except Exception as e:
+            print(e)
+        file.close()
+        return False
 
     def checksession(self, token):
         pass

@@ -29,15 +29,15 @@ class Demo(cmd.Cmd):
         print("User detached")
         print(self.board.users)
 
-    def do_getboardstate(self, _arg):
-        """Gets the board state"""
-        print(self.board.getboardstate())
-
-    def do_getuserstate(self, arg):
-        """Gets the user state (args: user_id)"""
-        user_id = arg
-        user = self.board.users[user_id]
-        print(self.board.getuserstate(user))
+    # def do_getboardstate(self, _arg):
+    #     """Gets the board state"""
+    #     print(self.board.getboardstate())
+    #
+    # def do_getuserstate(self, arg):
+    #     """Gets the user state (args: user_id)"""
+    #     user_id = arg
+    #     user = self.board.users[user_id]
+    #     print(self.board.getuserstate(user))
 
     def do_turn(self, arg):
         """Applies turn commands (args: user_id, command)"""

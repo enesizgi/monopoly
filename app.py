@@ -8,6 +8,7 @@ from TCPMessage import TCPNotification, TCPCommand
 from Board import Board
 import argparse
 import json
+from BankruptcyError import BankruptcyError
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', type=int, default=8000)
@@ -119,22 +120,21 @@ def game_agent(c, user, instance):
 
     while True:
         with instance.lock:
-            print('Instance lock acquired', user.username, instance.current_user.username)
-
             while instance.current_user.id != user.id:
                 user.append_message(TCPNotification('notification', f'{instance.current_user.username} is playing'))
-
-                # check for multiple conditions maybe
-                print('Current user', instance.current_user.username)
                 instance.condition.wait()
-                print('Not blocking')
-                # is callback called
+                if len(instance.users) <= 1:
+                    instance.detach(user)
+                    user.append_message(TCPNotification('notification', 'You have won!'))
+                    return
                 c.send(json.dumps(user.message_queue).encode())
 
-            # message queue maybe
-            # callback and turncb check maybe
-            # c.send(f'N Your turn'.encode())
-            possible_commands = instance.get_possible_commands(user)
+            user.append_message(TCPNotification('notification', 'Your turn'))
+            try:
+                possible_commands = instance.get_possible_commands(user)
+            except BankruptcyError:
+                instance.detach(user)
+                return
             print('possible_commands', possible_commands, user.username)
             if len(possible_commands) == 0:
                 user.append_message(TCPNotification('notification', 'You have no possible moves'))
@@ -143,8 +143,15 @@ def game_agent(c, user, instance):
                 while True:
                     instance.condition.wait()
                     for command in possible_commands:
-                        if command["type"] == user.current_command:
-                            command = {'type': user.current_command.split(' ')[0]}
+                        if user.current_command == "detach":
+                            return
+                        user.current_command = user.current_command.split(' ')
+                        if command["type"] == user.current_command[0]:
+                            command_args = []
+                            if len(user.current_command) > 1:
+                                command_args = user.current_command[1:]
+                            command = {'type': user.current_command[0], "args": command_args}
+                            print(command, user.current_command)
                             instance.turn(user, command)
                             break
                     else:
@@ -157,10 +164,10 @@ def game_agent(c, user, instance):
 
 
 def agent(c, addr):
-    c.send(f'{addr} connected'.encode())
+    c.send(json.dumps([TCPNotification('notification', f'{addr} connected').make_message()]).encode())
     is_auth = False
     user = None
-    instance: Board = None
+    instance: Board | None = None
 
     while True:
         request = TCPCommand.parse_command(c.recv(1024).decode())
@@ -176,19 +183,18 @@ def agent(c, addr):
             user_id_counter += 1
             monitor.unlock_user_id_counter()
             if not user.auth(password):
-                c.send(TCPNotification('notification', 'Authentication Failed').make_message().encode())
-                c.close()
+                user.append_message(TCPNotification('notification', 'Authentication Failed'))
             else:
-                c.send(TCPNotification('notification', 'Authentication Successful').make_message().encode())
+                user.append_message(TCPNotification('notification', 'Authentication Successful'))
                 is_auth = True
         else:
 
             if not is_auth:
-                c.send(TCPNotification('notification', 'Authentication Required').make_message().encode())
+                c.send(json.dumps([TCPNotification('notification', 'Authentication Required').make_message()]).encode())
 
             elif request.command == 'getinstances':
                 ll = ''.join([str(i) for i in get_list_of_instances()])
-                c.send(TCPNotification('notification', ll).make_message().encode())
+                user.append_message(TCPNotification('notification', ll))
 
             elif request.command == 'attach':
                 choice = int(request.args[0])
@@ -200,35 +206,49 @@ def agent(c, addr):
 
                 with instance.lock:
                     if instance.started:
-                        c.send(TCPNotification('notification', 'Game has already started').make_message().encode())
+                        user.append_message(TCPNotification('notification', 'Game has already started'))
                         continue
                     instance.attach(user)
-                c.send(TCPNotification('notification', 'Attached to board').make_message().encode())
+                user.append_message(TCPNotification('notification', 'Attached to board'))
 
             elif request.command == 'detach':
 
                 if user.attached_to is None:
-                    c.send(TCPNotification('notification', 'You are not attached to any board').make_message().encode())
+                    user.append_message(TCPNotification('notification', 'You are not attached to any board'))
                     continue
 
                 with instance.lock:
                     instance.detach(user)
+                    instance = None
 
-                c.send(TCPNotification('notification', 'Detached from board').make_message().encode())
+                user.append_message(TCPNotification('notification', 'Detached from board'))
 
             elif request.command == 'new':
                 create_new_instance()
-                c.send(TCPNotification('notification', 'New Board Created').make_message().encode())
+                user.append_message(TCPNotification('notification', 'New Board Created'))
 
-            elif request.command == 'ready':
+            elif request.command == 'ready' and user.attached_to is not None:
                 if user.attached_to is None:
-                    c.send(TCPNotification('notification', 'You are not attached to any board').make_message().encode())
+                    user.append_message(TCPNotification('notification', 'You are not attached to any board'))
                     continue
 
                 with instance.lock:
                     instance.ready(user)
 
-            elif request.command == 'turn':
+            elif request.command == 'getboardstate' and user.attached_to is not None:
+                try:
+                    user.append_message(TCPNotification('notification', instance.getboardstate()))
+                except:
+                    pass
+
+            elif request.command == 'getuserstate' and user.attached_to is not None:
+                try:
+                    requested_user = instance.users[int(request.args[0])]
+                    user.append_message(TCPNotification('notification', instance.getuserstate(requested_user)))
+                except:
+                    pass
+
+            elif request.command == 'turn' and user.attached_to is not None:
                 with instance.lock:
                     if instance.current_user.id == user.id:
                         with user.lock:
