@@ -4,7 +4,6 @@ from threading import *
 from .TCPMessage import TCPNotification, TCPCommand
 
 from .Board import Board
-import argparse
 import json
 from .BankruptcyError import BankruptcyError
 
@@ -25,6 +24,7 @@ class Server(object):
         This function creates a new Board instance for users. They can attach to this instance.
         :return:
         """
+        print('Creating new instance...')
         monitor.lock_board_id_counter()
         instance = Board(file='monopoly/input.json', board_id=self.board_id_counter)
         self.board_id_counter += 1
@@ -33,7 +33,7 @@ class Server(object):
         monitor.lock_instance_array()
         self.list_of_instances[instance.id] = instance
         monitor.unlock_instance_array()
-        print('new function is running...')
+        print('new function is running...', self.list_of_instances)
 
     def get_list_of_instances(self):
         """
@@ -315,10 +315,10 @@ class Monitor:
 
 monitor = Monitor()
 
-if __name__ == '__main__':
-    server1 = Server()
-    server2 = Server()
-    print(server1 is server2)
+# if __name__ == '__main__':
+#     server1 = Server()
+#     server2 = Server()
+#     print(server1 is server2)
     # Socket arrangements
     # s = socket(AF_INET, SOCK_STREAM)
     # args = parser.parse_args()

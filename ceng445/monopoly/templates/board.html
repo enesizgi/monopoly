@@ -4,13 +4,8 @@
 
 {% block content %}
 {% if user.is_authenticated %}
-<!--  <img src="https://svgur.com/i/tJb.svg" alt="board">-->
-<h1>Avaliable Boards:</h1>
-<ul>
-  {% for id in board_ids %}
-    <li><a href="{% url 'board' id %}">Board {{ id }}</a></li>
-  {% endfor %}
-</ul>
+    <h1>Board {{ id }}</h1>
+<img src="https://svgur.com/i/tJb.svg" alt="board">
     <p><a href="{% url 'logout' %}">Log Out</a></p>
 {% else %}
   <p>You are not logged in</p>

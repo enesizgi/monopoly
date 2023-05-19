@@ -2,15 +2,17 @@ from django.apps import AppConfig
 from .app import Server
 from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
+from random import randint
 
-ready_count = 0
+
+PORT = 1233
+
 
 def create_server():
     print('Creating server...')
     s = socket(AF_INET, SOCK_STREAM)
     # args = parser.parse_args()
-    port = 1219
-    s.bind(('localhost', int(port)))
+    s.bind(('localhost', int(PORT)))
     s.listen(5)
 
     server = Server()
@@ -21,6 +23,7 @@ def create_server():
     while True:
         # For each connection request, create a new agent responsible for user
         c, addr = s.accept()
+        print('instances', server.list_of_instances)
         print(f'Connection accepted from {addr}')
         t = Thread(target=server.agent, args=(c, addr))
         t.start()
@@ -33,8 +36,5 @@ class MonopolyConfig(AppConfig):
     def ready(self):
         print('Monopoly app is ready!')
         import monopoly.signals
-        global ready_count
-        if ready_count == 0:
-            t = Thread(target=create_server)
-            t.start()
-            ready_count += 1
+        t = Thread(target=create_server)
+        t.start()

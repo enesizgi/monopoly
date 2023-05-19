@@ -4,6 +4,7 @@ from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from .client import Clients, Client
 from socket import socket, AF_INET, SOCK_STREAM
+from .apps import PORT
 
 users = []
 
@@ -15,10 +16,10 @@ def user_logged_in_receiver(sender, request, user, **kwargs):
     print('User logged in! {}'.format(user.username))
     clients = Clients()
     s = socket(AF_INET, SOCK_STREAM)
-    client = Client(s, 1219)
+    client = Client(s, PORT)
     client.do_connect()
     client.do_auth(user.username)
-    clients.add_client(user.username, request)
+    clients.add_client(user.username, client)
 
     # Example: Log the login activity
     print(f"User {user.username} logged ")
