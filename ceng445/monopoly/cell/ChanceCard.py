@@ -6,7 +6,7 @@ sys.path.append('..')
 
 from .Cell import Cell
 from .Property import Property
-from User import User
+from ..User import User
 
 import random
 

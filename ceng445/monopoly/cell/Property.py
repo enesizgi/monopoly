@@ -5,7 +5,8 @@ import sys
 sys.path.append('..')
 # import cell class
 from .Cell import Cell
-from User import User
+from ..User import User
+# from User import User
 
 
 class Property(Cell):

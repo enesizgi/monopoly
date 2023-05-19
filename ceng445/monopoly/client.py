@@ -1,14 +1,31 @@
 import argparse
 import json
-from cmd import Cmd
 from socket import *
-from TCPMessage import TCPCommand, TCPNotification
+from .TCPMessage import TCPCommand, TCPNotification
 from threading import Thread
 
 
-class Client(Cmd):
+class Clients(object):
+    def __init__(self):
+        self.clients = {}
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Clients, cls).__new__(cls)
+        return cls.instance
+
+    def add_client(self, client_id, client):
+        self.clients[client_id] = client
+
+    def get_client(self, client_id):
+        return self.clients[client_id]
+
+    def remove_client(self, client_id):
+        del self.clients[client_id]
+
+
+class Client:
     def __init__(self, s, port):
-        super().__init__()
         self.s = s
         self.port = port
 
@@ -18,7 +35,7 @@ class Client(Cmd):
         else:
             self.s.send(message.encode())
 
-    def do_connect(self, arg):
+    def do_connect(self):
         """Connects to the server"""
         try:
             self.s.connect(('localhost', int(self.port)))
@@ -27,10 +44,9 @@ class Client(Cmd):
         except Exception as e:
             print(e)
 
-    def do_auth(self, arg):
+    def do_auth(self, username):
         """Authenticates the user (args: username, password)"""
-        username, password = arg.split(' ')
-        self.send_command(TCPCommand("auth", [username, password]))
+        self.send_command(TCPCommand("auth", [username]))
 
     def do_getinstances(self, _arg):
         """Gets the list of available instances"""
@@ -54,6 +70,7 @@ class Client(Cmd):
         print('Waiting for other players to be ready...')
 
     def wait_message(self):
+        print('Waiting for messages...')
         while True:
             messages = self.s.recv(4096).decode()
             try:

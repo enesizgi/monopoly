@@ -1,7 +1,7 @@
 import json
 from threading import RLock
 
-from TCPMessage import TCPNotification
+from .TCPMessage import TCPNotification
 from hashlib import sha256
 
 

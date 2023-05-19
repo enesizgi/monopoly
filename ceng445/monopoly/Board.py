@@ -1,15 +1,15 @@
 import json
-from cell.Property import Property
-from cell.Teleport import Teleport
-from cell.Tax import Tax
-from cell.Jail import Jail
-from cell.ChanceCard import ChanceCard
-from cell.Start import Start
-from User import User
-from cell.GotoJail import GotoJail
+from .cell.Property import Property
+from .cell.Teleport import Teleport
+from .cell.Tax import Tax
+from .cell.Jail import Jail
+from .cell.ChanceCard import ChanceCard
+from .cell.Start import Start
+from .User import User
+from .cell.GotoJail import GotoJail
 import random
 from threading import *
-from TCPMessage import TCPNotification
+from .TCPMessage import TCPNotification
 
 
 # Main board class
