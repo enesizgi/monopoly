@@ -127,8 +127,8 @@ class Server(object):
                 # If the user has the turn
                 user.append_message(TCPNotification('notification', 'Your turn'))
                 try:
-                    possible_commands = instance.get_possible_commands(user)
                     with user.lock:
+                        possible_commands = instance.get_possible_commands(user)
                         user.possible_commands = possible_commands
 
                 # get_possible_commands method handles payments like rent and tax and it raises exception in case of
@@ -245,8 +245,12 @@ class Server(object):
                     user.append_message(TCPNotification('notification', 'Detached from board'))
 
                     monitor.lock_user_id_counter()
-                    del self.users[user.username]
+                    if user.username in self.users:
+                        del self.users[user.username]
                     monitor.unlock_user_id_counter()
+
+                    with user.lock:
+                        user.possible_commands = []
 
                 elif request.command == 'new':
                     self.create_new_instance()

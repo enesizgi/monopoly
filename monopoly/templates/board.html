@@ -327,10 +327,19 @@
 
     <circle r="12" cy="{{ player1_y }}" cx="{{ player1_x }}" class="player player1"></circle>
     <circle r="12" cy="{{ player2_y }}" cx="{{ player2_x }}" class="player player2"></circle>
+        <text text-anchor="middle" font-size="20" y="{{ player1_y_text }}" x="{{ player1_x }}">{{ player1_username }}</text>
+        <text text-anchor="middle" font-size="20" y="{{ player2_y_text }}" x="{{ player2_x }}">{{ player2_username }}</text>
+
 <!--    <circle r="12" cy="475" cx="75" class="player"></circle>-->
 <!--    <circle r="12" cy="475" cx="125" class="player"></circle>-->
 </svg>
     <div>Username: {{ username }}</div>
+    <div>{{ state }}</div>
+    <form method="post" action="/">
+            {% csrf_token %}
+            <input type="submit" value="Leave Game">
+            <input name="quit" type="hidden" value="quit" id="quit"/>
+    </form>
     <p><a href="{% url 'logout' %}">Log Out</a></p>
     {% if not is_ready %}
         <form method="post">
@@ -339,18 +348,45 @@
             <input name="ready" type="hidden" value="ready" id="ready"/>
         </form>
     {% endif %}
-    <form method="post">
+    <script>
+    function show_hide_args() {
+        var dropdown = document.querySelector('#moves');
+        var selected = dropdown.options[dropdown.selectedIndex].value;
+        var form = document.querySelector('#command_form');
+        if (["teleport", "pickProp", "pickColor"].includes(selected)) {
+            var textInput = document.createElement('input');
+            textInput.type = 'text';
+            textInput.name = 'args';
+            textInput.id = 'args';
+            form.appendChild(textInput);
+        } else {
+            var textInput2 = document.querySelector('#args');
+            if (textInput2) {
+                form.removeChild(textInput2);
+            }
+        }
+
+    }
+
+    </script>
+    <form method="post" id="command_form">
         {% csrf_token %}
         <label for="moves"> Possible Moves </label>
-        <select id='moves' name="move">
+        <select id='moves' name="move" onchange="show_hide_args()">
             {% for command in possible_commands %}
             <option value="{{ command }}">{{ command }}</option>
             {% endfor %}
         </select>
         <input type="submit" value="Submit Action">
+
     </form>
     <button onclick="window.location.reload()" type="button">Refresh</button>
-
+    <script>
+    show_hide_args();
+    setInterval(function(){
+        window.location.reload();
+    }, 20000);
+    </script>
 {% else %}
   <p>You are not logged in</p>
   <a href="{% url 'login' %}">Log In</a>

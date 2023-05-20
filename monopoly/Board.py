@@ -224,7 +224,7 @@ class Board:
 
             try:
                 prop = int(command['args'][0])
-                upgradable_properties = list(map(lambda x: x.location, self.get_upgradable_properties()))
+                upgradable_properties = list(map(lambda x: x['location'], self.get_upgradable_properties()))
                 if prop in upgradable_properties:
                     self.cells[user.location].applyChanceCard([self.cells[prop]], user, self)
                     self.add_to_message_queue(TCPNotification('notification', f'{user.username} has used chance card on {self.cells[prop].name}'))
@@ -271,14 +271,11 @@ class Board:
         # if the user is on teleport cell and wants to teleport, ask the user to enter a destination and call the
         # teleport method of the teleport cell
         elif command['type'] == "teleport":
-            possible_cells = self.cells[user.location].get_possible_cells_to_teleport(self, user)
-            for i, cell in enumerate(possible_cells):
-                print(f'{i}: {cell.name}')
-
             try:
+                possible_cells = self.cells[user.location].get_possible_cells_to_teleport(self, user)
                 destination = int(command["args"][0])
-                self.cells[user.location].teleport(user, destination)
                 message = f'{user.username} is teleporting to {destination} for {self.cells[user.location].teleport_fee}.'
+                self.cells[user.location].teleport(user, destination)
                 self.add_to_message_queue(TCPNotification('notification', message))
                 self.turn_changed = False
             except:

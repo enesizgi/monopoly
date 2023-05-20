@@ -29,15 +29,26 @@ def home(request):
     server = Server()
     board_ids = list(map(lambda x: x.id, server.list_of_instances.values()))
     print(board_ids, server.list_of_instances)
-    return render(request, 'home.html', context={'board_ids': board_ids})
+    clients = Clients()
+    client = clients.get_client(request.user.username)
+    if 'create_new_board' in request.POST:
+        server = Server()
+        server.create_new_instance()
+    elif 'quit' in request.POST:
+        if client is not None:
+            client.do_detach()
+    if client is None:
+        return render(request, 'home.html', context={'board_ids': board_ids, 'logged_in': False})
+    return render(request, 'home.html', context={'board_ids': board_ids, 'logged_in': True})
 
 
 def board(request, id):
     context = {'id': id}
     clients = Clients()
     client = clients.get_client(request.user.username)
+    if client is not None:
+        client.do_attach(id)
     context['username'] = request.user.username
-    client.do_attach(id)
     user = None
     try:
         instance = Server().list_of_instances[id]
@@ -50,17 +61,26 @@ def board(request, id):
                 user1 = users[i]
                 context[f'player{i + 1}_x'] = player_positions[user1.location]['x'] + 20*i
                 context[f'player{i + 1}_y'] = player_positions[user1.location]['y']
+                context[f'player{i+1}_y_text'] = player_positions[user1.location]['y']+30
+                context[f'player{i+1}_username'] = user1.username
+
+
+
+            context['state'] = user.get()
     except:
         print('Exception')
         pass
     if request.method == 'POST':
         print(request.POST)
-        if 'ready' in request.POST and request.POST['ready'] == 'ready':
+        if 'ready' in request.POST and request.POST['ready'] == 'ready' and client is not None:
             client.do_ready()
             if isinstance(user, User):
                 user.set_ready(True)
-        elif 'move' in request.POST:
-            client.do_turn(request.POST['move'])
+        elif 'move' in request.POST and client is not None:
+            command = request.POST['move']
+            if 'args' in request.POST:
+                command += ' ' + request.POST['args'].strip()
+            client.do_turn(command)
     if isinstance(user, User) and user.ready:
         print('User is ready')
         context['is_ready'] = True
@@ -70,5 +90,8 @@ def board(request, id):
 
     # Player positions
 
-
+    if client is not None:
+        context['logged_in'] = False
+    else:
+        context['logged_in'] = True
     return render(request, 'board.html', context=context)

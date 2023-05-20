@@ -5,7 +5,7 @@ from threading import Thread
 from random import randint
 
 
-PORT = 1281
+PORT = 1303
 
 def create_server():
     print('Creating server...')

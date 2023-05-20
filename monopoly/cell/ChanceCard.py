@@ -42,26 +42,27 @@ class ChanceCard(Cell):
         :param board: If the chance card is a lottery card, the board is passed to this method.
         :return: 
         """
-        if self.card == 'Upgrade':
-            props[0].upgrade()
-        elif self.card == 'Downgrade':
-            props[0].downgrade()
-        elif self.card == 'Color Upgrade':
-            for prop in props:
-                prop.upgrade()
-        elif self.card == 'Color Downgrade':
-            for prop in props:
-                prop.downgrade()
-        elif self.card == 'Go to Jail':
-            user.location = board.jail_cell_index
-            user.inJail = True
-        elif self.card == 'Jail Free Card':
-            user.jailFreeCard = True
-        elif self.card == 'Lottery':
-            user.budget += board.lottery
-        elif self.card == 'Tax':
-            user.budget -= board.tax
-        self.card = None
+        with user.lock:
+            if self.card == 'Upgrade':
+                props[0].upgrade()
+            elif self.card == 'Downgrade':
+                props[0].downgrade()
+            elif self.card == 'Color Upgrade':
+                for prop in props:
+                    prop.upgrade()
+            elif self.card == 'Color Downgrade':
+                for prop in props:
+                    prop.downgrade()
+            elif self.card == 'Go to Jail':
+                user.location = board.jail_cell_index
+                user.inJail = True
+            elif self.card == 'Jail Free Card':
+                user.hasJailFreeCard = True
+            elif self.card == 'Lottery':
+                user.budget += board.lottery
+            elif self.card == 'Tax':
+                user.budget -= board.tax
+            self.card = None
 
     def to_json(self):
         return json.dumps({

@@ -1,12 +1,11 @@
 from datetime import timezone
 
-from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 from .client import Clients, Client
 from socket import socket, AF_INET, SOCK_STREAM
 from .apps import PORT
 
-users = []
 
 @receiver(user_logged_in)
 def user_logged_in_receiver(sender, request, user, **kwargs):
@@ -22,6 +21,10 @@ def user_logged_in_receiver(sender, request, user, **kwargs):
     clients.add_client(user.username, client)
 
     # Example: Log the login activity
-    print(f"User {user.username} logged ")
-    users.append(user.username)
-    print(users)
+
+
+@receiver(user_logged_out)
+def user_logged_out_receiver(sender, request, user, **kwargs):
+    client = Clients().get_client(user.username)
+    if client is not None:
+        client.do_detach()

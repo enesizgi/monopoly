@@ -20,10 +20,13 @@ class Clients(object):
         self.clients[client_id] = client
 
     def get_client(self, client_id):
+        if client_id not in self.clients:
+            return None
         return self.clients[client_id]
 
     def remove_client(self, client_id):
-        del self.clients[client_id]
+        if client_id in self.clients:
+            del self.clients[client_id]
 
 
 class Client:
@@ -66,7 +69,7 @@ class Client:
             self.send_command(TCPCommand("attach", [arg]))
             self.attached = True
 
-    def do_detach(self, arg):
+    def do_detach(self):
         """Detaches a user from the game (args: user_id)"""
         if self.attached:
             self.send_command(TCPCommand("detach"))

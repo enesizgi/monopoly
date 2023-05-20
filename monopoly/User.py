@@ -53,19 +53,21 @@ class User:
         dice1, dice2 = dice
         new_location = (self.location + dice1 + dice2)
 
+        with self.lock:
         # check if user is in jail and if he can get out of jail by rolling doubles
-        if self.inJail and dice1 == dice2:
-            self.jailTurns = 0
-            self.inJail = False
+            if self.inJail and dice1 == dice2:
+                self.jailTurns = 0
+                self.inJail = False
 
-        # check if user is passing start
-        if new_location > cell_count:
-            self.budget += salary
-            print(f'You passed start and earned {salary}!')
-        self.location = new_location % cell_count
+            # check if user is passing start
+            if new_location >= cell_count:
+                self.budget += salary
+                print(f'You passed start and earned {salary}!')
+            self.location = new_location % cell_count
 
     def get(self):
-        return self.to_json()
+        with self.lock:
+            return self.to_json()
 
     def auth(self, plainpass: str):
         file = open('db.json', 'r')
@@ -81,15 +83,6 @@ class User:
             print(e)
         file.close()
         return False
-
-    def checksession(self, token):
-        pass
-
-    def login(self):
-        pass
-
-    def logout(self):
-        pass
 
     def update(self, ready=None, user_id=None, username=None, email=None, fullname=None, passwd=None):
         if ready:
@@ -121,25 +114,28 @@ class User:
         return commands[command]
 
     def to_json(self):
-        return {
-            'id': self.id,
-            'properties': [props.getstate() for props in self.properties],
-            'username': self.username,
-            # 'properties': self.properties,
-            'location': self.location,
-            'inJail': self.inJail,
-            'jailTurns': self.jailTurns,
-            'hasJailFreeCard': self.hasJailFreeCard,
-            'budget': self.budget,
-            'ready': self.ready
-        }
+        with self.lock:
+            return {
+                'id': self.id,
+                'properties': [props.getstate() for props in self.properties],
+                'username': self.username,
+                # 'properties': self.properties,
+                'location': self.location,
+                'inJail': self.inJail,
+                'jailTurns': self.jailTurns,
+                'hasJailFreeCard': self.hasJailFreeCard,
+                'budget': self.budget,
+                'ready': self.ready
+            }
 
     def append_message(self, message):
         with self.lock:
-            if isinstance(message, TCPNotification):
-                self.message_queue.append(message.make_message())
-            else:
-                self.message_queue.append(message)
-
+            try:
+                if isinstance(message, TCPNotification):
+                    self.message_queue.append(message.make_message())
+                else:
+                    self.message_queue.append(message)
+            except:
+                pass
     def __repr__(self):
         return self.get()
