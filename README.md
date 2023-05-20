@@ -31,3 +31,16 @@ and board. These files are:
 1. **client.py:** This class represents the client. It connects to the server and sends/receives messages to/from the server.
 2. **app.py:** This class represents the server. It listens to the clients and sends/receives messages to/from the clients.
 3. **TCPMessage.py:** This class represents the messages that are sent between the server and the clients.
+
+**Phase 3**
+
+We have created a Django project for this phase. We have created a new app called "monopoly" and we have moved our code to this app.
+In addition to the default files for the Django project, we have created the following files:
+
+1. **views.py:** This file contains the functions that are called when a user sends a request to the server.
+2. **signals.py:** This file contains the functions that are called to handle extra work when a user logs in or logs out.
+3. **db.sqlite3:** This file contains the database of the project.
+4. **templates:** This folder contains the html files that are used to render the pages. These html files include:
+     1. **base.html:** This file is the base html file. Other html files extend this file.
+   2. **home.html:** This file is the home page of the project. It contains the list of available games.
+   3. **board.html:** This file is the game page of the project. It contains the board and the form data.
