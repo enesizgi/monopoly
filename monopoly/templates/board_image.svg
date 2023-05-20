@@ -5,10 +5,19 @@
         }
 
         .player {
-        fill: #f00;
         stroke: #000;
         stroke-width: 2px;
         }
+
+        .player1{
+            fill: #f00
+        }
+
+
+        .player2{
+            fill: #0f0
+        }
+
 
         .cell {
         fill: #eee;
@@ -308,8 +317,8 @@
 47 -21 93 3 133 29 48 26 84 -12 122 -30 29 -155 110 -171 110 -3 0 -11 -9
 -17 -19z" style="fill: rgb(0, 82, 168); stroke: rgb(0, 82, 168);"></path></g>
 
-<!--    <circle r="12" cy="525" cx="75" class="player"></circle>-->
-<!--    <circle r="12" cy="525" cx="125" class="player"></circle>-->
+<!--    <circle r="12" cy="{{ player1_y }}" cx="{{ player1_x }}" class="player player1"></circle>-->
+<!--    <circle r="12" cy="{{ player2_y }}" cx="{{ player2_x }}" class="player player2"></circle>-->
 <!--    <circle r="12" cy="475" cx="75" class="player"></circle>-->
 <!--    <circle r="12" cy="475" cx="125" class="player"></circle>-->
 </svg>

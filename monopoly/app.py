@@ -8,16 +8,29 @@ import json
 from .BankruptcyError import BankruptcyError
 
 
+def singleton(cls):
+    instance = None
+
+    def wrapper(*args, **kwargs):
+        nonlocal instance
+        if instance is None:
+            instance = cls(*args, **kwargs)
+        return instance
+
+    return wrapper
+
+@singleton
 class Server(object):
     def __init__(self):
+        self.users: [User] = {}
         self.list_of_instances: [Board] = {}
         self.user_id_counter = 0
         self.board_id_counter = 0
 
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(Server, cls).__new__(cls)
-        return cls.instance
+    # def __new__(cls):
+    #     if not hasattr(cls, 'instance'):
+    #         cls.instance = super(Server, cls).__new__(cls)
+    #     return cls.instance
 
     def create_new_instance(self):
         """
@@ -100,6 +113,8 @@ class Server(object):
                 # If the user does not have the turn
                 while instance.current_user.id != user.id:
                     user.append_message(TCPNotification('notification', f'{instance.current_user.username} is playing'))
+                    with user.lock:
+                        user.possible_commands = []
                     instance.condition.wait()
 
                     # Other users has bankrupted or detached, current user wins
@@ -113,6 +128,8 @@ class Server(object):
                 user.append_message(TCPNotification('notification', 'Your turn'))
                 try:
                     possible_commands = instance.get_possible_commands(user)
+                    with user.lock:
+                        user.possible_commands = possible_commands
 
                 # get_possible_commands method handles payments like rent and tax and it raises exception in case of
                 # a bankruptcy
@@ -179,6 +196,7 @@ class Server(object):
                 # password = request.args[1]
                 monitor.lock_user_id_counter()
                 user = User(username=username, user_id=self.user_id_counter)
+                self.users[username] = user
                 # Create a notification thread to be able to send users messages.
                 notification_thread = Thread(target=self.notification_agent, args=(c, user))
                 notification_thread.start()
@@ -225,6 +243,10 @@ class Server(object):
                         instance = None
 
                     user.append_message(TCPNotification('notification', 'Detached from board'))
+
+                    monitor.lock_user_id_counter()
+                    del self.users[user.username]
+                    monitor.unlock_user_id_counter()
 
                 elif request.command == 'new':
                     self.create_new_instance()
@@ -319,20 +341,20 @@ monitor = Monitor()
 #     server1 = Server()
 #     server2 = Server()
 #     print(server1 is server2)
-    # Socket arrangements
-    # s = socket(AF_INET, SOCK_STREAM)
-    # args = parser.parse_args()
-    # port = args.port
-    # s.bind(('localhost', int(port)))
-    # s.listen(5)
-    #
-    # # Initially create an instance
-    # create_new_instance()
-    #
-    # print('Server is running...')
-    # while True:
-    #     # For each connection request, create a new agent responsible for user
-    #     c, addr = s.accept()
-    #     print(f'Connection accepted from {addr}')
-    #     t = Thread(target=agent, args=(c, addr))
-    #     t.start()
+# Socket arrangements
+# s = socket(AF_INET, SOCK_STREAM)
+# args = parser.parse_args()
+# port = args.port
+# s.bind(('localhost', int(port)))
+# s.listen(5)
+#
+# # Initially create an instance
+# create_new_instance()
+#
+# print('Server is running...')
+# while True:
+#     # For each connection request, create a new agent responsible for user
+#     c, addr = s.accept()
+#     print(f'Connection accepted from {addr}')
+#     t = Thread(target=agent, args=(c, addr))
+#     t.start()

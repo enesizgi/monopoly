@@ -33,6 +33,9 @@ class Board:
         self.ready_count = 0
         self.current_user = None
 
+        import os
+        cwd = os.getcwd()
+
         with open(file) as f:
             data = json.load(f)
             self.salary = data['startup']
@@ -142,8 +145,9 @@ class Board:
         :param user: User object
         :return:
         """
-        user.ready = True
-        user.budget = self.salary
+        with user.lock:
+            user.ready = True
+            user.budget = self.salary
         self.ready_count += 1
         if self.ready_count >= 2:
             self.started = True

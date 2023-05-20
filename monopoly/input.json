@@ -7,7 +7,7 @@
       "type": "property",
       "name": "bostanci",
       "cell": 2,
-      "color": "red",
+      "color": "green",
       "price": 120,
       "rents": [
         50,
@@ -21,7 +21,7 @@
       "type": "property",
       "name": "kadikoy",
       "cell": 4,
-      "color": "red",
+      "color": "green",
       "price": 120,
       "rents": [
         50,
@@ -35,6 +35,23 @@
       "type": "property",
       "name": "taksim",
       "cell": 6,
+      "color": "green",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "jail"
+    },
+    {
+      "type": "property",
+      "name": "etiler",
+      "cell": 6,
       "color": "red",
       "price": 120,
       "rents": [
@@ -47,9 +64,9 @@
     },
     {
       "type": "property",
-      "name": "etiler",
+      "name": "rumeli",
       "cell": 6,
-      "color": "blue",
+      "color": "red",
       "price": 120,
       "rents": [
         50,
@@ -63,7 +80,7 @@
       "type": "property",
       "name": "ortakoy",
       "cell": 7,
-      "color": "blue",
+      "color": "red",
       "price": 120,
       "rents": [
         50,
@@ -75,6 +92,23 @@
     },
     {
       "type": "gotojail"
+    },
+    {
+      "type": "chance"
+    },
+    {
+      "type": "property",
+      "name": "sisli",
+      "cell": 9,
+      "color": "blue",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
     },
     {
       "type": "property",
@@ -91,58 +125,38 @@
       ]
     },
     {
-      "type": "chance"
-    },
-    {
-      "type": "property",
-      "name": "rumeli",
-      "cell": 6,
-      "color": "green",
-      "price": 120,
-      "rents": [
-        50,
-        150,
-        400,
-        600,
-        900
-      ]
-    },
-    {
-      "type": "property",
-      "name": "sisli",
-      "cell": 9,
-      "color": "green",
-      "price": 120,
-      "rents": [
-        50,
-        150,
-        400,
-        600,
-        900
-      ]
-    },
-    {
-      "type": "jail"
-    },
-    {
-      "type": "property",
-      "name": "levent",
-      "cell": 10,
-      "color": "green",
-      "price": 120,
-      "rents": [
-        50,
-        150,
-        400,
-        600,
-        900
-      ]
-    },
-    {
       "type": "teleport"
     },
     {
       "type": "tax"
+    },
+    {
+      "type": "property",
+      "name": "nisantasi",
+      "cell": 10,
+      "color": "yellow",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
+    },
+    {
+      "type": "property",
+      "name": "besiktas",
+      "cell": 10,
+      "color": "yellow",
+      "price": 120,
+      "rents": [
+        50,
+        150,
+        400,
+        600,
+        900
+      ]
     }
   ],
   "upgrade": 50,
@@ -150,7 +164,7 @@
   "jailbail": 100,
   "tax": 30,
   "lottery": 200,
-  "startup": 1500,
+  "startup": 500,
   "chances": [
     {
       "type": "jump"

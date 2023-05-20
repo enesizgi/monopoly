@@ -3,16 +3,18 @@ import json
 from socket import *
 from .TCPMessage import TCPCommand, TCPNotification
 from threading import Thread
+from .app import singleton
 
 
+@singleton
 class Clients(object):
     def __init__(self):
         self.clients = {}
 
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(Clients, cls).__new__(cls)
-        return cls.instance
+    # def __new__(cls):
+    #     if not hasattr(cls, 'instance'):
+    #         cls.instance = super(Clients, cls).__new__(cls)
+    #     return cls.instance
 
     def add_client(self, client_id, client):
         self.clients[client_id] = client
@@ -28,6 +30,8 @@ class Client:
     def __init__(self, s, port):
         self.s = s
         self.port = port
+        self.attached = False
+        self.ready = False
 
     def send_command(self, message):
         if isinstance(message, TCPCommand):
@@ -58,13 +62,17 @@ class Client:
 
     def do_attach(self, arg):
         """Attaches a user to the game (args: board_id)"""
-        self.send_command(TCPCommand("attach", [arg]))
+        if not self.attached:
+            self.send_command(TCPCommand("attach", [arg]))
+            self.attached = True
 
     def do_detach(self, arg):
         """Detaches a user from the game (args: user_id)"""
-        self.send_command(TCPCommand("detach"))
+        if self.attached:
+            self.send_command(TCPCommand("detach"))
+            self.attached = False
 
-    def do_ready(self, arg):
+    def do_ready(self):
         """Sets the user as ready"""
         self.send_command(TCPCommand("ready"))
         print('Waiting for other players to be ready...')

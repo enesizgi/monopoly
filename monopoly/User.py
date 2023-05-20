@@ -27,12 +27,18 @@ class User:
         self.attached_to = None
         self.message_queue = []
         self.lock = RLock()
+        self.possible_commands = []
+        self.current_command = ""
 
         # Authentication related
         self.username = username
         self.email = email
         self.fullname = fullname
         self.passwd = passwd
+
+    def set_ready(self, ready):
+        with self.lock:
+            self.ready = ready
 
     # ready can be moved here
 
