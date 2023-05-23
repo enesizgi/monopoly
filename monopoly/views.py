@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
 from .client import Clients, Client
 from .app import Server
 from .User import User
@@ -41,6 +42,18 @@ def home(request):
         return render(request, 'home.html', context={'board_ids': board_ids, 'logged_in': False})
     return render(request, 'home.html', context={'board_ids': board_ids, 'logged_in': True})
 
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+
+    else:
+        form = UserCreationForm()
+
+    context = {'form': form}
+    return render(request, 'registration/register.html', context)
 
 def board(request, id):
     context = {'id': id}

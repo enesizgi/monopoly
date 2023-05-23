@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'monopoly.apps.MonopolyConfig'
+    'monopoly.apps.MonopolyConfig',
 ]
 
 MIDDLEWARE = [
