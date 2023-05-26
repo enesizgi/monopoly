@@ -1,3 +1,7 @@
 .idea
 __pycache__
 *.pyc
+bin/
+lib/
+e2310142_e2380814/
+e2310142_e2380814.zip
