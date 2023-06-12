@@ -17,7 +17,6 @@
                 <div id="user-info-first">
                     <h2 id="user-header"></h2>
 
-                </span>
                     <p id="user-money">Budget: </p>
                     <p>Owned Properties</p>
                     <ul id="user-properties"></ul>
@@ -25,6 +24,255 @@
             </div>
 
             <div class="monopoly-board">
+                <div id="upgrade-color-buttons" class="action-buttons">
+                    <div class="button-top">
+                        <button value="green" onclick="sendupgradecolor(this.value)">Upgrade Color</button>
+                    </div>
+                    <div class="button-right">
+                        <button value="red" onclick="sendupgradecolor(this.value)"
+                                style="transform: rotate(90deg);">Upgrade Color
+                        </button>
+                    </div>
+                    <div class="button-bottom">
+                        <button value="blue" onclick="sendupgradecolor(this.value)">Upgrade Color</button>
+                    </div>
+                    <div class="button-left">
+                        <button value="yellow" onclick="sendupgradecolor(this.value)"
+                                style="transform: rotate(270deg);">Upgrade Color
+                        </button>
+                    </div>
+                </div>
+
+                <div id="downgrade-color-buttons" class="action-buttons">
+                    <div class="button-top">
+                        <button value="green" onclick="senddowngradecolor(this.value)">Downgrade Color</button>
+                    </div>
+                    <div class="button-right">
+                        <button value="red" onclick="senddowngradecolor(this.value)"
+                                style="transform: rotate(90deg);">Downgrade Color
+                        </button>
+                    </div>
+                    <div class="button-bottom">
+                        <button value="blue" onclick="senddowngradecolor(this.value)">Downgrade Color</button>
+                    </div>
+                    <div class="button-left">
+                        <button value="yellow" onclick="senddowngradecolor(this.value)"
+                                style="transform: rotate(270deg);">Downgrade Color
+                        </button>
+                    </div>
+                </div>
+                <div id="teleport-buttons" class="action-buttons" style="visibility: ">
+                    <div style="position: absolute; top: 4%; left: 45%;">
+                        <button value="2" onclick="sendteleport(this.value)">Teleport</button>
+
+                    </div>
+                    <div style="position: absolute; top: 4%; left: 65%;" >
+                        <button value="3" onclick="sendteleport(this.value)">Teleport</button>
+
+                    </div>
+                    <div style="position: absolute; top: 4%; left: 5%;" >
+                        <button value="0" onclick="sendteleport(this.value)">Teleport</button>
+
+                    </div>
+                    <div style="position: absolute; top: 28%; right: 2%;" >
+                        <button value="5" onclick="sendteleport(this.value)"
+                                style="transform: rotate(90deg);">Teleport
+                        </button>
+
+                    </div>
+                    <div style="position: absolute; top: 48%; right: 2%;" >
+                        <button value="6" onclick="sendteleport(this.value)"
+                                style="transform: rotate(90deg);">Teleport
+                        </button>
+
+                    </div>
+                    <div style="position: absolute; top: 68%; right: 2%;" >
+                        <button value="7" onclick="sendteleport(this.value)"
+                                style="transform: rotate(90deg);">Teleport
+                        </button>
+                    </div>
+                    <div style="position: absolute; top: 90%; left:25%;" >
+                        <button value="11" onclick="sendteleport(this.value)">Teleport</button>
+                    </div>
+
+
+                    <div style="position: absolute; top: 90%; left:45%;">
+                        <button value="10" onclick="sendteleport(this.value)">Teleport</button>
+                    </div>
+
+
+                    <div style="position: absolute; top: 48%; left: 2%;">
+                        <button value="14" onclick="sendteleport(this.value)"
+                                style="transform: rotate(270deg);">Teleport
+                        </button>
+
+                    </div>
+
+                    <div style="position: absolute; top: 28%; left: 2%;" >
+                        <button value="15" onclick="sendteleport(this.value)"
+                                style="transform: rotate(270deg);">Teleport
+                        </button>
+
+                    </div>
+
+
+                    <div style="position: absolute; top: 90%; left: 5%;">
+                        <button value="9" onclick="sendteleport(this.value)">Teleport</button>
+                    </div>
+
+                    <div style="position: absolute; top: 4%; left: 25%;" >
+                        <button value="1" onclick="sendteleport(this.value)">Teleport</button>
+
+                    </div>
+
+                </div>
+
+                    <div id="upgrade-prop" class="action-buttons">
+
+                            <div style="position: absolute; top: 4%; left: 45%;">
+                                <button value="2" onclick="sendupgrade(this.value)">Upgrade</button>
+                            </div>
+
+
+                            <div style="position: absolute; top: 4%; left: 65%;" >
+                                <button value="3" onclick="sendupgrade(this.value)">Upgrade</button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 28%; right: 2%;" >
+                                <button value="5" onclick="sendupgrade(this.value)"
+                                        style="transform: rotate(90deg);">Upgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 48%; right: 2%;" >
+                                <button value="6" onclick="sendupgrade(this.value)"
+                                        style="transform: rotate(90deg);">Upgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 68%; right: 2%;" >
+                                <button value="7" onclick="sendupgrade(this.value)"
+                                        style="transform: rotate(90deg);">Upgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 90%; left:25%;" >
+                                <button value="11" onclick="sendupgrade(this.value)">Upgrade</button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 90%; left:45%;" >
+                                <button value="10" onclick="sendupgrade(this.value)">Upgrade</button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 48%; left: 2%;" >
+                                <button value="14" onclick="sendupgrade(this.value)"
+                                        style="transform: rotate(270deg);">Upgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 28%; left: 2%;" >
+                                <button value="15" onclick="sendupgrade(this.value)"
+                                        style="transform: rotate(270deg);">Upgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 4%; left: 25%;" >
+                                <button value="1" onclick="sendupgrade(this.value)">Upgrade</button>
+
+                            </div>
+
+                    </div>
+
+                    <div id="downgrade-prop" class="action-buttons">
+
+                            <div style="position: absolute; top: 4%; left: 45%;">
+                                <button value="2" onclick="senddowngrade(this.value)">Downgrade</button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 4%; left: 65%;">
+                                <button value="3" onclick="senddowngrade(this.value)">Downgrade</button>
+                            </div>
+
+
+                            <div style="position: absolute; top: 28%; right: 2%;">
+                                <button value="5" onclick="senddowngrade(this.value)"
+                                        style="transform: rotate(90deg);">Downgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 48%; right: 2%">
+                                <button value="6" onclick="senddowngrade(this.value)"
+                                        style="transform: rotate(90deg);">Downgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 68%; right: 2%;" >
+                                <button value="7" onclick="senddowngrade(this.value)"
+                                        style="transform: rotate(90deg);">Downgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 90%; left:25%;"  >
+                                <button value="11" onclick="senddowngrade(this.value)">Downgrade</button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 90%; left:45%;">
+                                <button value="10" onclick="senddowngrade(this.value)">Downgrade</button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 48%; left: 2%;">
+                                <button value="14" onclick="senddowngrade(this.value)"
+                                        style="transform: rotate(270deg);">Downgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 28%; left: 2%;"  >
+                                <button value="15" onclick="senddowngrade(this.value)"
+                                        style="transform: rotate(270deg);">Downgrade
+                                </button>
+
+                            </div>
+
+
+                            <div style="position: absolute; top: 4%; left: 25%;"  >
+                                <button value="1" onclick="senddowngrade(this.value)">Downgrade</button>
+
+                            </div>
+
+                    </div>
+                <div id="commands">
+                    <button value="ready" onclick="sendcommand(this.value)">Ready</button>
+                </div>
                 <svg xmlns="http://www.w3.org/2000/svg" height="800" width="800">
                     <style>
                         .board {
@@ -107,14 +355,6 @@
                     <g>
 
                         <text text-anchor="middle" font-size="40" y="450" x="400">MONOPOLY</text>
-                        <foreignObject x="220" y="500" width="350" height="100">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="ready" onclick="sendcommand(this.value)">Ready</button>
-
-                            </div>
-
-                        </foreignObject>
 
                         <rect y="0" x="0" height="160" width="160" class="cell"></rect>
                         <text text-anchor="middle" font-size="20" y="20" x="80">Start</text>
@@ -320,386 +560,7 @@
                     <circle r="12" class="player player1" id="player1-position"></circle>
                     <circle r="12" class="player player2" id="player2-position"></circle>
 
-                    <g id="upgrade-color-buttons">
-                        <foreignObject x="210" y="150" width="350" height="100" id="upgrade-color-green"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="green" onclick="sendupgradecolor(this.value)">Upgrade Color</button>
-                            </div>
-                        </foreignObject>
-                        <foreignObject x="420" y="350" width="350" height="100" id="upgrade-color-red"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="red" onclick="sendupgradecolor(this.value)"
-                                        style="transform: rotate(90deg);">Upgrade Color
-                                </button>
-                            </div>
-                        </foreignObject>
-                        <foreignObject x="125" y="590" width="350" height="100" id="upgrade-color-blue"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="blue" onclick="sendupgradecolor(this.value)">Upgrade Color</button>
-                            </div>
-                        </foreignObject>
-                        <foreignObject x="-10" y="280" width="350" height="100" id="upgrade-color-yellow"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="yellow" onclick="sendupgradecolor(this.value)"
-                                        style="transform: rotate(270deg);">Upgrade Color
-                                </button>
-                            </div>
-                        </foreignObject>
-                    </g>
 
-                    <g id="downgrade-color-buttons">
-                        <foreignObject x="210" y="150" width="350" height="100" id="downgrade-color-green"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="green" onclick="senddowngradecolor(this.value)">Downgrade Color</button>
-                            </div>
-                        </foreignObject>
-                        <foreignObject x="420" y="350" width="350" height="100" id="downgrade-color-red"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="red" onclick="senddowngradecolor(this.value)"
-                                        style="transform: rotate(90deg);">Downgrade Color
-                                </button>
-                            </div>
-                        </foreignObject>
-                        <foreignObject x="125" y="590" width="350" height="100" id="downgrade-color-blue"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="blue" onclick="senddowngradecolor(this.value)">Downgrade Color</button>
-                            </div>
-                        </foreignObject>
-                        <foreignObject x="-10" y="280" width="350" height="100" id="downgrade-color-yellow"
-                                       style="visibility: hidden">
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="yellow" onclick="senddowngradecolor(this.value)"
-                                        style="transform: rotate(270deg);">Downgrade Color
-                                </button>
-                            </div>
-                        </foreignObject>
-                    </g>
-
-
-                    <g id="teleport-buttons" style="visibility: hidden;">
-                        <foreignObject x="205" y="20" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="2" onclick="sendteleport(this.value)">Teleport</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="365" y="20" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="3" onclick="sendteleport(this.value)">Teleport</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="-125" y="20" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="0" onclick="sendteleport(this.value)">Teleport</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="210" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="5" onclick="sendteleport(this.value)"
-                                        style="transform: rotate(90deg);">Teleport
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="370" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="6" onclick="sendteleport(this.value)"
-                                        style="transform: rotate(90deg);">Teleport
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="530" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="7" onclick="sendteleport(this.value)"
-                                        style="transform: rotate(90deg);">Teleport
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="45" y="700" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="11" onclick="sendteleport(this.value)">Teleport</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="200" y="700" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="10" onclick="sendteleport(this.value)">Teleport</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="-130" y="370" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="14" onclick="sendteleport(this.value)"
-                                        style="transform: rotate(270deg);">Teleport
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="-130" y="210" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="15" onclick="sendteleport(this.value)"
-                                        style="transform: rotate(270deg);">Teleport
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="360" y="700" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-
-
-                                <button value="9" onclick="sendteleport(this.value)">Teleport</button>
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="45" y="20" width="350" height="100" id="teleport-cell">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="1" onclick="sendteleport(this.value)">Teleport</button>
-
-                            </div>
-
-                        </foreignObject>
-                    </g>
-
-                    <g id="upgrade-prop">
-                        <foreignObject x="205" y="20" width="350" height="100" id="upgrade-button-2"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="2" onclick="sendupgrade(this.value)">Upgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="365" y="20" width="350" height="100" id="upgrade-button-3"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="3" onclick="sendupgrade(this.value)">Upgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="210" width="350" height="100" id="upgrade-button-5"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="5" onclick="sendupgrade(this.value)"
-                                        style="transform: rotate(90deg);">Upgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="370" width="350" height="100" id="upgrade-button-6"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="6" onclick="sendupgrade(this.value)"
-                                        style="transform: rotate(90deg);">Upgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="530" width="350" height="100" id="upgrade-button-7"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="7" onclick="sendupgrade(this.value)"
-                                        style="transform: rotate(90deg);">Upgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="45" y="700" width="350" height="100" id="upgrade-button-11"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="11" onclick="sendupgrade(this.value)">Upgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="200" y="700" width="350" height="100" id="upgrade-button-10"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="10" onclick="sendupgrade(this.value)">Upgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="-130" y="370" width="350" height="100" id="upgrade-button-14"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="14" onclick="sendupgrade(this.value)"
-                                        style="transform: rotate(270deg);">Upgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="-130" y="210" width="350" height="100" id="upgrade-button-15"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="15" onclick="sendupgrade(this.value)"
-                                        style="transform: rotate(270deg);">Upgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-
-                        <foreignObject x="45" y="20" width="350" height="100" id="upgrade-button-1"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="1" onclick="sendupgrade(this.value)">Upgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                    </g>
-
-                    <g id="downgrade-prop">
-                        <foreignObject x="205" y="20" width="350" height="100" id="downgrade-button-2"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;">
-                                <button value="2" onclick="senddowngrade(this.value)">Downgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="365" y="20" width="350" height="100" id="downgrade-button-3"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="3" onclick="senddowngrade(this.value)">Downgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="210" width="350" height="100" id="downgrade-button-5"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="5" onclick="senddowngrade(this.value)"
-                                        style="transform: rotate(90deg);">Downgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="370" width="350" height="100" id="downgrade-button-6"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="6" onclick="senddowngrade(this.value)"
-                                        style="transform: rotate(90deg);">Downgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="550" y="530" width="350" height="100" id="downgrade-button-7"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="7" onclick="senddowngrade(this.value)"
-                                        style="transform: rotate(90deg);">Downgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="45" y="700" width="350" height="100" id="downgrade-button-11"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="11" onclick="senddowngrade(this.value)">Downgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="200" y="700" width="350" height="100" id="downgrade-button-10"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="10" onclick="senddowngrade(this.value)">Downgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="-130" y="370" width="350" height="100" id="downgrade-button-14"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="14" onclick="senddowngrade(this.value)"
-                                        style="transform: rotate(270deg);">Downgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-                        <foreignObject x="-130" y="210" width="350" height="100" id="downgrade-button-15"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="15" onclick="senddowngrade(this.value)"
-                                        style="transform: rotate(270deg);">Downgrade
-                                </button>
-
-                            </div>
-
-                        </foreignObject>
-
-                        <foreignObject x="45" y="20" width="350" height="100" id="downgrade-button-1"
-                                       style="visibility: hidden;">
-
-                            <div style="width: 100%; height: 100%; padding: 20px;" id="commands">
-                                <button value="1" onclick="senddowngrade(this.value)">Downgrade</button>
-
-                            </div>
-
-                        </foreignObject>
-                    </g>
 
 
                     <!--    <circle r="12" cy="475" cx="75" class="player"></circle>-->
@@ -756,12 +617,14 @@
                     })
                 )
 
-                let teleport_buttons = document.querySelector('#teleport-buttons')
-                teleport_buttons.setAttribute('style', 'visibility: hidden;')
+                const teleport_divs = document.querySelectorAll('div[id="teleport-buttons"] > div')
+                for (const div of teleport_divs) {
+                    div.setAttribute('style', div.getAttribute('style') + ' visibility: hidden;')
+                }
             }
 
             function sendupgrade(cell) {
-                debugger;
+
 
                 ws.socket.send(
                     JSON.stringify({
@@ -771,14 +634,15 @@
                 )
 
                 // get all buttons with id starts with upgrade-button
-                let upgrade_buttons = document.querySelectorAll('[id^="upgrade-button"]')
-                upgrade_buttons.forEach(button => {
-                    button.setAttribute('style', 'visibility: hidden;')
+                {#let upgrade_buttons = document.querySelectorAll('[id^="upgrade-button"]')#}
+                const upgrade_divs = document.querySelectorAll('div[id="upgrade-prop"] > div')
+                upgrade_divs.forEach(div => {
+                    div.setAttribute('style', div.getAttribute('style') + ' visibility: hidden;')
                 })
             }
 
             function senddowngrade(cell) {
-                debugger;
+
 
                 ws.socket.send(
                     JSON.stringify({
@@ -788,14 +652,15 @@
                 )
 
                 // get all buttons with id starts with upgrade-button
-                let downgrade_buttons = document.querySelectorAll('[id^="downgrade-button"]')
-                downgrade_buttons.forEach(button => {
-                    button.setAttribute('style', 'visibility: hidden;')
+                {#let downgrade_buttons = document.querySelectorAll('[id^="downgrade-button"]')#}
+                const downgrade_divs = document.querySelectorAll('div[id="downgrade-prop"] > div')
+                downgrade_divs.forEach(div => {
+                    div.setAttribute('style', div.getAttribute('style') + ' visibility: hidden;')
                 })
             }
 
             function sendupgradecolor(color) {
-                debugger;
+
 
                 ws.socket.send(
                     JSON.stringify({
@@ -804,14 +669,15 @@
                     })
                 )
 
-                let upgrade_buttons = document.querySelectorAll('[id^="upgrade-color"]')
-                upgrade_buttons.forEach(button => {
-                    button.setAttribute('style', 'visibility: hidden;')
+                {#let upgrade_buttons = document.querySelectorAll('[id^="upgrade-color"]')#}
+                const upgrade_color = document.querySelectorAll('div[id="upgrade-color-buttons"] > div')
+                upgrade_color.forEach(div => {
+                    div.setAttribute('style', div.getAttribute('style') + ' visibility: hidden;')
                 })
             }
 
             function senddowngradecolor(color) {
-                debugger;
+
 
                 console.log(color)
                 ws.socket.send(
@@ -821,9 +687,10 @@
                     })
                 )
 
-                let downgrade_buttons = document.querySelectorAll('[id^="downgrade-color"]')
-                downgrade_buttons.forEach(button => {
-                    button.setAttribute('style', 'visibility: hidden;')
+                {#let downgrade_buttons = document.querySelectorAll('[id^="downgrade-color"]')#}
+                const downgrade_color = document.querySelectorAll('div[id="downgrade-color-buttons"] > div')
+                downgrade_color.forEach(div => {
+                    div.setAttribute('style', div.getAttribute('style') + ' visibility: hidden;')
                 })
             }
 
@@ -1011,17 +878,23 @@
                                     commands.innerHTML = ''
                                     for (let command of messages[m].possible_commands) {
 
+
                                         if (command.type === 'teleport') {
                                             let teleport_buttons = document.getElementById('teleport-buttons')
                                             teleport_buttons.setAttribute('style', 'visibility: visible;')
+                                            const teleport_divs = document.querySelectorAll('div[id="teleport-buttons"] > div')
+                                            for (const div of teleport_divs) {
+                                                div.setAttribute('style', div.getAttribute('style') + ' visibility: visible;')
+                                            }
                                             continue;
                                         }
 
                                         if (command.type === 'pickPropUpgrade') {
                                             let cell_locations = command.props.map(prop => prop.location)
                                             for (const index in cell_locations) {
-                                                let cell = document.getElementById(`upgrade-button-${cell_locations[index]}`)
-                                                cell.setAttribute('style', 'visibility: visible;')
+                                                const div = document.querySelector('div[id="upgrade-prop"]');
+                                                let button = div.querySelector(`button[value="${cell_locations[index]}"]`);
+                                                button.parentNode.setAttribute('style', button.parentNode.getAttribute('style') + ' visibility: visible;')
                                             }
                                             break;
                                         }
@@ -1030,8 +903,9 @@
 
                                             let cell_locations = command.props.map(prop => prop.location)
                                             for (const index in cell_locations) {
-                                                let cell = document.getElementById(`downgrade-button-${cell_locations[index]}`)
-                                                cell.setAttribute('style', 'visibility: visible;')
+                                                const div = document.querySelector('div[id="downgrade-prop"]');
+                                                let button = div.querySelector(`button[value="${cell_locations[index]}"]`);
+                                                button.parentNode.setAttribute('style', button.parentNode.getAttribute('style') + ' visibility: visible;')
                                             }
                                             break;
                                         }
@@ -1039,7 +913,8 @@
                                         if (command.type === 'pickColorUpgrade') {
 
                                             for (const color in command.colors) {
-                                                let color_button = document.getElementById(`upgrade-color-${command.colors[color]}`)
+                                                const div = document.querySelector('div[id="upgrade-color-buttons"]');
+                                                let color_button = div.querySelector(`button[value="${command.colors[color]}"]`);
                                                 color_button.setAttribute('style', 'visibility: visible;')
                                             }
                                             break;
@@ -1048,7 +923,8 @@
                                         if (command.type === 'pickColorDowngrade') {
 
                                             for (const color in command.colors) {
-                                                let color_button = document.getElementById(`downgrade-color-${command.colors[color]}`)
+                                                const div = document.querySelector('div[id="downgrade-color-buttons"]');
+                                                let color_button = div.querySelector(`button[value="${command.colors[color]}"]`);
                                                 color_button.setAttribute('style', 'visibility: visible;')
                                             }
                                             break;
@@ -1056,9 +932,7 @@
 
                                         let command_button = document.createElement('button')
                                         command_button.innerHTML = command.type
-                                        command_button.onclick = function () {
-                                            sendcommand(command.type)
-                                        }
+                                        command_button.setAttribute('onclick', `sendcommand('${command.type}')`)
                                         commands.appendChild(command_button)
                                     }
                                 } else {

@@ -1,12 +1,12 @@
 import json
-import sys
 from threading import Thread, Lock, Condition
 
 import websockets
 from websockets.sync.server import serve
 from Board import Board
 from User import User
-from TCPMessage import TCPNotification, TCPCommand
+from TCPMessage import TCPCommand
+
 
 def singleton(cls):
     instance = None
@@ -18,6 +18,7 @@ def singleton(cls):
         return instance
 
     return wrapper
+
 
 @singleton
 class BoardManager:
@@ -82,6 +83,8 @@ def serveconnection(sc):
 
     bm = BoardManager()
 
+    wr = None
+
     if sc.request.path != '/':
         instance_id = sc.request.path.split('/')[-2]
         username = sc.request.path.split('/')[-1]
@@ -131,9 +134,10 @@ def serveconnection(sc):
         # print('client is terminating')
         # conn.close()
     except websockets.exceptions.ConnectionClosed:
-
-        conn.close()
-        wr.terminate()
+        pass
+        # conn.close()
+        # if wr:
+        #     wr.terminate()
 
 
 HOST = ''
@@ -144,4 +148,3 @@ PORT = 5678
 with serve(lambda nc: serveconnection(nc), host=HOST, port=PORT) as server:
     print("serving")
     server.serve_forever()
-
