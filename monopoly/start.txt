@@ -1,6 +1,0 @@
-attach 0 boran
-attach 1 enes
-attach 2 doruk
-ready 0
-ready 1
-ready 2

@@ -42,11 +42,7 @@ def register(request):
             form.save()
             return redirect('login')
 
-    else:
-        form = UserCreationForm()
-
-    context = {'form': form}
-    return render(request, 'registration/register.html', context)
+    return render(request, 'home.html', context={'user': request.user})
 
 def board(request, id):
     return render(request, 'board.html', context={'id': id, 'user': request.user, 'player_positions': json.dumps(player_positions)})
