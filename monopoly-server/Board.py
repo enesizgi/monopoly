@@ -9,8 +9,6 @@ from User import User, player_positions
 from cell.GotoJail import GotoJail
 import random
 from threading import *
-from TCPMessage import TCPNotification
-
 
 
 # Main board class
@@ -34,9 +32,6 @@ class Board:
         self.ready_count = 0
         self.current_user = None
         self.messages = []
-
-        import os
-        cwd = os.getcwd()
 
         with open(file) as f:
             data = json.load(f)
@@ -172,7 +167,8 @@ class Board:
             # self.condition.notify_all()
             msg = {'message': 'Game has started'}
             self.addmessage(msg)
-            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': self.get_possible_commands(self.current_user)})
+            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(),
+                             'possible_commands': self.get_possible_commands(self.current_user)})
 
     @classmethod
     def get_random_dice(cls):
@@ -219,7 +215,6 @@ class Board:
                 self.addmessage(
                     {'message': f'{user.username} has arrived at {name}', 'board': self.getboardstate()})
 
-
             # return
 
         # if the user wants to bail out of jail, check if the user has a jail free card. If the user has a jail free
@@ -232,7 +227,8 @@ class Board:
             self.addmessage({'message': f'{user.username} has bailed out of jail', 'board': self.getboardstate()})
             self.turn_changed = True
             possible_commands = self.get_possible_commands(user)
-            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': possible_commands})
+            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(),
+                             'possible_commands': possible_commands})
             return
 
         elif command['type'] == "useJailFreeCard":
@@ -243,7 +239,8 @@ class Board:
             user.hasJailFreeCard = False
             self.turn_changed = True
             possible_commands = self.get_possible_commands(user)
-            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': possible_commands})
+            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(),
+                             'possible_commands': possible_commands})
             return
 
         # user picked up a chance card that is either upgrade or downgrade
@@ -256,7 +253,8 @@ class Board:
                 upgradable_properties = list(map(lambda x: x['location'], self.get_upgradable_properties()))
                 if prop in upgradable_properties:
                     self.cells[user.location].applyChanceCard([self.cells[prop]], user, self)
-                    self.addmessage({'message': f'{user.username} has used chance card on {self.cells[prop].name}', 'board': self.getboardstate()})
+                    self.addmessage({'message': f'{user.username} has used chance card on {self.cells[prop].name}',
+                                     'board': self.getboardstate()})
 
             except Exception as e:
                 print(e)
@@ -274,12 +272,13 @@ class Board:
 
             # print all possible colors that the user can upgrade or downgrade
 
-                # ask the user to select a color and apply the chance card to the properties of the color
+            # ask the user to select a color and apply the chance card to the properties of the color
             try:
                 prop = int(command["args"][0])
                 color_props = self.get_properties_by_color(list(user_colors)[prop])
                 self.cells[user.location].applyChanceCard(color_props, user, self)
-                self.addmessage({'message': f'{user.username} has used chance card on {list(user_colors)[prop]}', 'board': self.getboardstate()})
+                self.addmessage({'message': f'{user.username} has used chance card on {list(user_colors)[prop]}',
+                                 'board': self.getboardstate()})
             except Exception as e:
                 print(e)
 
@@ -287,13 +286,15 @@ class Board:
         # property cell
         elif command['type'] == "buy":
             self.cells[user.location].buyProperty(user)
-            self.addmessage({'message': f'{user.username} bought {self.cells[user.location].name}', 'board': self.getboardstate()})
+            self.addmessage(
+                {'message': f'{user.username} bought {self.cells[user.location].name}', 'board': self.getboardstate()})
 
         # if the user is on a property cell and wants to upgrade the property, call the upgrade method of the property
         # cell
         elif command['type'] == "upgrade":
             self.cells[user.location].upgrade(self.upgrade, user)
-            self.addmessage(json.dumps({'message': f'{user.username} upgraded {self.cells[user.location].name}', 'board': self.getboardstate()}))
+            self.addmessage(json.dumps({'message': f'{user.username} upgraded {self.cells[user.location].name}',
+                                        'board': self.getboardstate()}))
 
 
         # if the user is on teleport cell and wants to teleport, ask the user to enter a destination and call the
@@ -314,9 +315,8 @@ class Board:
             self.current_user = self.determine_next_user()
             possible_commands = self.get_possible_commands(self.current_user)
 
-        self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': possible_commands})
-
-
+        self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(),
+                         'possible_commands': possible_commands})
 
     def get_properties_by_color(self, color):
         """
@@ -327,21 +327,23 @@ class Board:
         return list(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.color == color, self.cells))
 
     def get_property_state(self, iterable):
-        return list(map(lambda x: x.getstate(),iterable))
+        return list(map(lambda x: x.getstate(), iterable))
 
     def get_upgradable_properties(self):
         """
         Returns all the properties that can be upgraded
         :return: list of property cells
         """
-        return self.get_property_state(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 4, self.cells))
+        return self.get_property_state(
+            filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 4, self.cells))
 
     def get_downgradable_properties(self):
         """
         Returns all the properties that can be downgraded
         :return: list of property cells
         """
-        return self.get_property_state(filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 0, self.cells))
+        return self.get_property_state(
+            filter(lambda x: x.type == 'property' and x.owner_id != -1 and x.level != 0, self.cells))
 
     def get_color_properties(self, user):
         """
