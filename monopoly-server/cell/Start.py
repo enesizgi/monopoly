@@ -1,4 +1,4 @@
-from .Cell import Cell
+from cell.Cell import Cell
 
 
 class Start(Cell):
@@ -10,6 +10,7 @@ class Start(Cell):
     def __init__(self, location, salary, cell_type):
         super().__init__(location, cell_type)
         self.salary = salary
+        self.name = 'Start'
 
     def __str__(self):
         return f'Start {self.location}'

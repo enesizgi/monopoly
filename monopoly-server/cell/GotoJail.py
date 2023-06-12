@@ -1,5 +1,5 @@
-from .Cell import Cell
-
+from cell.Cell import Cell
+from User import player_positions
 
 class GotoJail(Cell):
 
@@ -9,6 +9,7 @@ class GotoJail(Cell):
 
     def __init__(self, location, cell_type):
         super().__init__(location, cell_type)
+        self.name = 'GotoJail'
 
     def __str__(self):
         return f'GotoJail {self.location}'
@@ -21,6 +22,8 @@ class GotoJail(Cell):
         :return:
         """
         user.location = jail_location
+        user.location_x = player_positions[jail_location]['x']
+        user.location_y = player_positions[jail_location]['y']
         user.inJail = True
 
     def getstate(self):

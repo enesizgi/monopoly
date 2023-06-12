@@ -1,8 +1,27 @@
 import json
 from threading import RLock
 
-from .TCPMessage import TCPNotification
+from TCPMessage import TCPNotification
 from hashlib import sha256
+
+player_positions = [
+    {'x': 20, 'y': 80},
+    {'x': 180, 'y': 80},
+    {'x': 340, 'y': 80},
+    {'x': 500, 'y': 80},
+    {'x': 660, 'y': 80},
+    {'x': 680, 'y': 240},
+    {'x': 680, 'y': 400},
+    {'x': 680, 'y': 560},
+    {'x': 680, 'y': 720},
+    {'x': 520, 'y': 720},
+    {'x': 360, 'y': 720},
+    {'x': 200, 'y': 720},
+    {'x': 20, 'y': 720},
+    {'x': 20, 'y': 560},
+    {'x': 20, 'y': 400},
+    {'x': 20, 'y': 240},
+]
 
 
 class User:
@@ -17,6 +36,8 @@ class User:
         self.id = user_id
         self.properties = []
         self.location = 0
+        self.location_x = player_positions[0]['x']
+        self.location_y = player_positions[0]['y']
         self.inJail = False
         self.jailTurns = 0
         self.hasJailFreeCard = False
@@ -64,6 +85,8 @@ class User:
                 self.budget += salary
                 print(f'You passed start and earned {salary}!')
             self.location = new_location % cell_count
+            self.location_x = player_positions[self.location]['x']
+            self.location_y = player_positions[self.location]['y']
 
     def get(self):
         with self.lock:
@@ -121,6 +144,8 @@ class User:
                 'username': self.username,
                 # 'properties': self.properties,
                 'location': self.location,
+                'location_x': self.location_x,
+                'location_y': self.location_y,
                 'inJail': self.inJail,
                 'jailTurns': self.jailTurns,
                 'hasJailFreeCard': self.hasJailFreeCard,

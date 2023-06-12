@@ -1,4 +1,5 @@
-from .Cell import Cell
+from cell.Cell import Cell
+from User import player_positions
 
 
 class Teleport(Cell):
@@ -10,6 +11,7 @@ class Teleport(Cell):
     def __init__(self, location, teleport_fee, cell_type):
         super().__init__(location, cell_type)
         self.teleport_fee = teleport_fee
+        self.name = 'Teleport'
 
     def __str__(self):
         return f'Teleport {self.location}'
@@ -40,6 +42,8 @@ class Teleport(Cell):
         :return:
         """
         user.location = destination
+        user.location_x = player_positions[destination]['x']
+        user.location_y = player_positions[destination]['y']
         user.budget -= self.teleport_fee
 
     def getstate(self):

@@ -1,11 +1,12 @@
 from typing import List
 
 
-import sys
-sys.path.append('..')
 # import cell class
-from .Cell import Cell
-from ..User import User
+
+from User import User
+from cell.Cell import Cell
+
+
 # from User import User
 
 

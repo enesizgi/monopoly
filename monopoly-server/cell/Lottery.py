@@ -1,4 +1,4 @@
-from Cell import Cell
+from cell.Cell import Cell
 
 
 class Lottery(Cell):

@@ -1,15 +1,16 @@
 import json
-from .cell.Property import Property
-from .cell.Teleport import Teleport
-from .cell.Tax import Tax
-from .cell.Jail import Jail
-from .cell.ChanceCard import ChanceCard
-from .cell.Start import Start
-from .User import User
-from .cell.GotoJail import GotoJail
+from cell.Property import Property
+from cell.Teleport import Teleport
+from cell.Tax import Tax
+from cell.Jail import Jail
+from cell.ChanceCard import ChanceCard
+from cell.Start import Start
+from User import User, player_positions
+from cell.GotoJail import GotoJail
 import random
 from threading import *
-from .TCPMessage import TCPNotification
+from TCPMessage import TCPNotification
+
 
 
 # Main board class
@@ -29,9 +30,10 @@ class Board:
         self.first_roll = True
         self.id = board_id
         self.lock = RLock()
-        self.condition = Condition(self.lock)
+        self.newmess = Condition(self.lock)
         self.ready_count = 0
         self.current_user = None
+        self.messages = []
 
         import os
         cwd = os.getcwd()
@@ -69,6 +71,13 @@ class Board:
         """Returns the number of users in the game"""
         return len(list(self.users.keys()))
 
+    def getmessages(self, current=0):
+        return self.messages[current:]
+
+    def addmessage(self, message):
+        self.messages.append(message)
+        self.newmess.notify_all()
+
     def attach(self, user: User, callback=None, turncb=None):
 
         """
@@ -81,6 +90,10 @@ class Board:
         self.users[user.id] = user
         user.attached_to = self.id
         self.userTurn.append(user.id)
+
+        with self.lock:
+            message = {'message': f'{user.username} has joined', 'board': self.getboardstate(), 'user': user.get()}
+            self.addmessage(message)
 
     def detach(self, user):
         """
@@ -109,7 +122,7 @@ class Board:
         else:
             self.users = {}
             self.userTurn = []
-        self.condition.notify_all()
+        self.addmessage({'message': f'{user.username} has left'})
 
     def getuserstate(self, user):
         """
@@ -127,6 +140,7 @@ class Board:
         """
 
         return {
+            'id': self.id,
             'users': [user.get() for user in self.users.values()],
             'cells': [cell.getstate() for cell in self.cells],
             'started': self.started,
@@ -137,6 +151,7 @@ class Board:
             'jailbail': self.jailbail,
             'tax': self.tax,
             'lottery': self.lottery,
+            'current_user': self.current_user.id if self.current_user else None
         }
 
     def ready(self, user):
@@ -145,6 +160,8 @@ class Board:
         :param user: User object
         :return:
         """
+
+        self.addmessage({'message': f'{user.username} is ready', 'board': self.getboardstate()})
         with user.lock:
             user.ready = True
             user.budget = self.salary
@@ -152,8 +169,10 @@ class Board:
         if self.ready_count >= 2:
             self.started = True
             self.current_user = self.determine_next_user()
-            self.add_to_message_queue(TCPNotification('notification', 'Game Started'))
-            self.condition.notify_all()
+            # self.condition.notify_all()
+            msg = {'message': 'Game has started'}
+            self.addmessage(msg)
+            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': self.get_possible_commands(self.current_user)})
 
     @classmethod
     def get_random_dice(cls):
@@ -164,11 +183,6 @@ class Board:
         dice = random.randint(1, 6), random.randint(1, 6)
         return dice
 
-    def add_to_message_queue(self, message):
-
-        for user in self.users.values():
-            user.append_message(message)
-
     def turn(self, user, command):
         """
         Executes the command that is picked by the user.
@@ -178,44 +192,59 @@ class Board:
         """
 
         # if the user wants to roll the dice, move the user and print the cell type and name that the user has arrived
+
         if command['type'] == "roll":
             dice = self.get_random_dice()
-            self.add_to_message_queue(TCPNotification("notification", f'{user.username} rolled {dice}!'))
+            self.addmessage({'message': f'{self.current_user.username} rolled {dice}'})
             if user.inJail:
                 if dice[0] == dice[1]:
                     user.inJail = False
                     user.jailTurns = 0
+
+                    user.move(dice, len(self.cells), self.salary)
+                    name = getattr(self.cells[user.location], 'name', '')
+
+                    self.addmessage(
+                        {'message': f'{user.username} has arrived at {name}', 'board': self.getboardstate()})
                 else:
                     user.jailTurns += 1
                     if user.jailTurns == 3:
                         user.inJail = False
                         user.jailTurns = 0
-                    else:
-                        return
 
-            user.move(dice, len(self.cells), self.salary)
-            name = getattr(self.cells[user.location], 'name', '')
+            else:
+                user.move(dice, len(self.cells), self.salary)
+                name = getattr(self.cells[user.location], 'name', '')
 
-            self.add_to_message_queue(TCPNotification("notification",
-                                                      f'{user.username} have arrived {self.cells[user.location].type} {name}!'))
+                self.addmessage(
+                    {'message': f'{user.username} has arrived at {name}', 'board': self.getboardstate()})
+
+
             # return
 
         # if the user wants to bail out of jail, check if the user has a jail free card. If the user has a jail free
         # card, ask the user if they want to use it. If the user does not have a jail free card, call the pay_bail
         # method of the jail cell
         elif command['type'] == "bail":
-            if user.hasJailFreeCard:
-                answer = command["args"][0]
-                if answer == 'y':
-                    user.hasJailFreeCard = False
-                    user.jailTurns = 0
-                    user.inJail = False
-            else:
-                self.cells[user.location].pay_bail(user)
 
-            self.turn_changed = False
+            self.cells[user.location].pay_bail(user)
 
-            self.add_to_message_queue(TCPNotification('notification', f'{user.username} has bailed out from jail'))
+            self.addmessage({'message': f'{user.username} has bailed out of jail', 'board': self.getboardstate()})
+            self.turn_changed = True
+            possible_commands = self.get_possible_commands(user)
+            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': possible_commands})
+            return
+
+        elif command['type'] == "useJailFreeCard":
+
+            self.addmessage({'message': f'{user.username} has used jail free card', 'board': self.getboardstate()})
+            user.inJail = False
+            user.jailTurns = 0
+            user.hasJailFreeCard = False
+            self.turn_changed = True
+            possible_commands = self.get_possible_commands(user)
+            self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': possible_commands})
+            return
 
         # user picked up a chance card that is either upgrade or downgrade
         elif command['type'] == "pickProp":
@@ -227,11 +256,10 @@ class Board:
                 upgradable_properties = list(map(lambda x: x['location'], self.get_upgradable_properties()))
                 if prop in upgradable_properties:
                     self.cells[user.location].applyChanceCard([self.cells[prop]], user, self)
-                    self.add_to_message_queue(TCPNotification('notification', f'{user.username} has used chance card on {self.cells[prop].name}'))
+                    self.addmessage({'message': f'{user.username} has used chance card on {self.cells[prop].name}', 'board': self.getboardstate()})
 
             except Exception as e:
-                user.append_message(TCPNotification('notification', 'Wrong arguments'))
-
+                print(e)
 
             # ask the user to select a property and apply the chance card to the property
 
@@ -251,7 +279,7 @@ class Board:
                 prop = int(command["args"][0])
                 color_props = self.get_properties_by_color(list(user_colors)[prop])
                 self.cells[user.location].applyChanceCard(color_props, user, self)
-                self.add_to_message_queue(TCPNotification('notification', f'{user.username} has used chance card on {prop} properties'))
+                self.addmessage({'message': f'{user.username} has used chance card on {list(user_colors)[prop]}', 'board': self.getboardstate()})
             except Exception as e:
                 print(e)
 
@@ -259,27 +287,36 @@ class Board:
         # property cell
         elif command['type'] == "buy":
             self.cells[user.location].buyProperty(user)
-            self.add_to_message_queue(TCPNotification('notification', f'{user.username} bought {self.cells[user.location].name}'))
+            self.addmessage({'message': f'{user.username} bought {self.cells[user.location].name}', 'board': self.getboardstate()})
 
         # if the user is on a property cell and wants to upgrade the property, call the upgrade method of the property
         # cell
         elif command['type'] == "upgrade":
             self.cells[user.location].upgrade(self.upgrade, user)
-            self.add_to_message_queue(TCPNotification('notification', f'{user.username} upgraded {self.cells[user.location].name}'))
+            self.addmessage(json.dumps({'message': f'{user.username} upgraded {self.cells[user.location].name}', 'board': self.getboardstate()}))
 
 
         # if the user is on teleport cell and wants to teleport, ask the user to enter a destination and call the
         # teleport method of the teleport cell
         elif command['type'] == "teleport":
             try:
-                possible_cells = self.cells[user.location].get_possible_cells_to_teleport(self, user)
                 destination = int(command["args"][0])
-                message = f'{user.username} is teleporting to {destination} for {self.cells[user.location].teleport_fee}.'
+                message = f'{user.username} is teleporting to {self.cells[destination].name} for {self.cells[user.location].teleport_fee}.'
                 self.cells[user.location].teleport(user, destination)
-                self.add_to_message_queue(TCPNotification('notification', message))
                 self.turn_changed = False
-            except:
-                user.append_message(TCPNotification('notification', 'Wrong arguments'))
+                self.addmessage({'message': message, 'board': self.getboardstate()})
+            except Exception as e:
+                print(e)
+
+        self.current_user = self.determine_next_user()
+        possible_commands = self.get_possible_commands(self.current_user)
+        if len(possible_commands) == 0:
+            self.current_user = self.determine_next_user()
+            possible_commands = self.get_possible_commands(self.current_user)
+
+        self.addmessage({'message': f'{self.current_user.username}\'s turn', 'board': self.getboardstate(), 'possible_commands': possible_commands})
+
+
 
     def get_properties_by_color(self, color):
         """
@@ -341,8 +378,11 @@ class Board:
                     user.inJail = False
                     user.jailTurns = 0
                 else:
-                    if user.budget > self.jailbail or user.hasJailFreeCard:
+                    if user.budget > self.jailbail:
                         possible_commands.append({'type': 'bail'})
+
+                    if user.hasJailFreeCard:
+                        possible_commands.append({'type': 'useJailFreeCard'})
 
         # if the user still has the turn (after rolling the dice)
         else:
@@ -361,7 +401,7 @@ class Board:
 
                 # if the property is owned by the user, he can upgrade it if he has enough money
                 elif self.cells[user.location].owner_id == user.id:
-                    if user.budget > self.upgrade:
+                    if user.budget > self.upgrade and self.cells[user.location].level < 4:
                         possible_commands.append({'type': 'upgrade'})
                         possible_commands.append({'type': 'skip'})
 
@@ -370,8 +410,7 @@ class Board:
                     prop = self.cells[user.location]
                     prop.payRent(self.users[prop.owner_id], user)
                     message = f'{user.username} paid {prop.rents[prop.level]} to {self.users[prop.owner_id].username} for {prop.name}'
-                    self.add_to_message_queue(TCPNotification('notification', message))
-
+                    self.addmessage({'message': message, 'board': self.getboardstate()})
                     if user.budget < 0:
                         self.started = False
                         raise Exception("User {} is bankrupt".format(user.id))
@@ -392,23 +431,28 @@ class Board:
                 # randomly pick a chance card
                 chance_cell.getChanceCard()
                 message = f'{user.username} picked this chance card: {chance_cell.card}!'
-                self.add_to_message_queue(TCPNotification('notification', message))
+                self.addmessage({'message': message, 'board': self.getboardstate()})
 
                 # if the card is upgrade or downgrade, the user can pick a suitable property to upgrade or downgrade
                 if chance_cell.card == 'Upgrade':
                     upgradable_properties = self.get_upgradable_properties()
                     if len(upgradable_properties) != 0:
-                        possible_commands.append({'type': 'pickProp', 'props': upgradable_properties})
+                        possible_commands.append({'type': 'pickPropUpgrade', 'props': upgradable_properties})
                 elif chance_cell.card == 'Downgrade':
                     downgradable_properties = self.get_downgradable_properties()
                     if len(downgradable_properties) != 0:
-                        possible_commands.append({'type': 'pickProp', 'props': downgradable_properties})
+                        possible_commands.append({'type': 'pickPropDowngrade', 'props': downgradable_properties})
 
                 # if the card is color upgrade or downgrade, the user can pick a suitable color to upgrade or downgrade
-                elif chance_cell.card == 'Color Upgrade' or chance_cell.card == 'Color Downgrade':
+                elif chance_cell.card == 'Color Upgrade':
                     user_colors = self.get_color_properties(user)
                     if len(user_colors) != 0:
-                        possible_commands.append({'type': 'pickColor', 'colors': user_colors})
+                        possible_commands.append({'type': 'pickColorUpgrade', 'colors': user_colors})
+
+                elif chance_cell.card == 'Color Downgrade':
+                    user_colors = self.get_color_properties(user)
+                    if len(user_colors) != 0:
+                        possible_commands.append({'type': 'pickColorDowngrade', 'colors': user_colors})
                 else:
                     chance_cell.applyChanceCard(None, user, self)
 

@@ -1,4 +1,4 @@
-from .Cell import Cell
+from cell.Cell import Cell
 
 
 class Jail(Cell):
@@ -10,6 +10,7 @@ class Jail(Cell):
     def __init__(self, location, jail_bail: int, cell_type):
         super().__init__(location, cell_type)
         self.jail_bail = jail_bail
+        self.name = 'Jail'
 
     def __str__(self):
         return f'Jail {self.location}'

@@ -2,11 +2,10 @@ from typing import List
 import json
 
 import sys
-sys.path.append('..')
 
-from .Cell import Cell
-from .Property import Property
-from ..User import User
+from cell.Cell import Cell
+from cell.Property import Property
+from User import User, player_positions
 
 import random
 
@@ -20,6 +19,7 @@ class ChanceCard(Cell):
     def __init__(self, location, cell_type):
         super().__init__(location, cell_type)
         self.card = None
+        self.name = 'Chance'
         # define enum for chance cards
 
         self.chanceCards = ['Upgrade', 'Downgrade', 'Color Upgrade', 'Color Downgrade', 'Go to Jail', 'Jail Free Card',
@@ -55,6 +55,8 @@ class ChanceCard(Cell):
                     prop.downgrade()
             elif self.card == 'Go to Jail':
                 user.location = board.jail_cell_index
+                user.location_x = player_positions[board.jail_cell_index]['x']
+                user.location_y = player_positions[board.jail_cell_index]['y']
                 user.inJail = True
             elif self.card == 'Jail Free Card':
                 user.hasJailFreeCard = True
