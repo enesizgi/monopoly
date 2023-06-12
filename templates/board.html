@@ -8,11 +8,7 @@
 
         <div class="board-info">
             <h1>Board {{ id }} {{ user.username }}</h1>
-            <form method="post" action="/">
-                {% csrf_token %}
-                <input type="submit" value="Leave Game">
-                <input name="quit" type="hidden" value="quit" id="quit"/>
-            </form>
+            <button onclick="leavegame()">Leave Game</button>
             <p><a href="{% url 'logout' %}">Log Out</a></p>
         </div>
         <div class="container">
@@ -20,6 +16,8 @@
             <div class="user-info">
                 <div id="user-info-first">
                     <h2 id="user-header"></h2>
+
+                </span>
                     <p id="user-money">Budget: </p>
                     <p>Owned Properties</p>
                     <ul id="user-properties"></ul>
@@ -713,6 +711,7 @@
             <div class="user-info">
                 <div id="user-info-second">
                     <h2 id="user-header"></h2>
+
                     <p id="user-money">Budget: </p>
                     <p>Owned Properties</p>
                     <ul id="user-properties" class="user-properties">
@@ -736,6 +735,17 @@
 
             const first_user = document.getElementById('user-info-first')
             const second_user = document.getElementById('user-info-second')
+
+            function leavegame(){
+                ws.socket.send(
+                    JSON.stringify({
+                        'command': 'detach',
+                        'args': []
+                    })
+                )
+
+                window.location.href = "/";
+            }
 
             function sendteleport(cell) {
 

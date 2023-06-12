@@ -5,45 +5,88 @@
 {% block content %}
     {% if user.is_authenticated %}
         <!--  <img src="https://svgur.com/i/tJb.svg" alt="board">-->
-        <h1>Available Boards:</h1>
+        <h1>Available Games:</h1>
         <div class="board-grid" id="board-container">
 
         </div>
 
+        <button onclick="createBoard()">Create Board</button>
+
         <script>
-            fetch('api/boards')
-                .then(response => response.json())
-                .then(data => {
 
-                    const container = document.getElementById('board-container');
-                    data.forEach(board => {
-                        const div = document.createElement('div');
-                        const ul = document.createElement('ul');
+            function createBoard() {
+                ws.socket.send(JSON.stringify({
+                    'command': 'create_board',
+                    'args': []
+                }));
+            }
 
-                        const h2 = document.createElement('h2');
-                        h2.innerText = board.id;
-                        div.appendChild(h2);
+            class Ws {
+                constructor(ipport) {
+                    this.socket = undefined;
+                    this.ipport = ipport;
+                    this.createwebsocket();
+                }
 
-                        const button = document.createElement('button');
-                        button.innerText = 'Join';
-                        // on click go to board
-                        button.addEventListener('click', () => {
-                            window.location.href = `http://localhost:8000/board/${board.id}`;
-                        });
+                createwebsocket() {
+                    if (this.socket !== undefined) {
+                        this.socket.close();
+                    }
+                    this.socket = new WebSocket(this.ipport);
+                    this.socket.onopen = function (e) {
+                        ws.socket.send(JSON.stringify({
+                            'command': 'get_boards',
+                            'args': []
+                        }));
+                    };
+                    this.socket.onmessage = function (event) {
+                        const data = JSON.parse(event.data);
+                        console.log('boards');
+                        console.log(data);
+                        if (data.length > 0) {
+                            const container = document.getElementById('board-container');
+                            container.innerHTML = '';
+                            data.forEach(board => {
+                                debugger;
+                                const div = document.createElement('div');
+                                const ul = document.createElement('ul');
 
-                        div.appendChild(button);
+                                const h2 = document.createElement('h2');
+                                if (board.started) {
+                                    h2.innerHTML = 'Started';
+                                } else {
+                                    h2.innerHTML = 'Not Started';
+                                }
 
-                        div.appendChild(ul);
-                        board.users.forEach(user => {
-                            const li = document.createElement('li');
-                            li.innerText = user;
-                            ul.appendChild(li);
-                        });
+                                div.appendChild(h2);
 
-                        container.appendChild(div);
-                    });
-                })
-                .catch(error => console.error(error));
+                                const button = document.createElement('button');
+                                button.innerHTML = 'Join';
+
+                                button.addEventListener('click', function () {
+                                    window.location.href = `http://localhost:8000/board/${board.id}`;
+                                });
+
+                                div.appendChild(button);
+                                div.appendChild(ul);
+
+                                board.users.forEach(user => {
+                                    const li = document.createElement('li');
+                                    li.innerHTML = user.username;
+                                    ul.appendChild(li);
+                                });
+
+                                container.appendChild(div);
+                            });
+                        }
+
+                    };
+                }
+            }
+
+            window.onload = function () {
+                ws = new Ws("ws://localhost:5678");
+            };
         </script>
 
         <a href="{% url 'logout' %}"> Log Out</a>
