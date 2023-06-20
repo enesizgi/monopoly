@@ -44,3 +44,18 @@ In addition to the default files for the Django project, we have created the fol
      1. **base.html:** This file is the base html file. Other html files extend this file.
    2. **home.html:** This file is the home page of the project. It contains the list of available games.
    3. **board.html:** This file is the game page of the project. It contains the board and the form data.
+
+**Phase 4**
+
+We have transformed our socket server into a websocket and put all the operation into this websocket.
+We used django only for authentication and html rendering. To run the project, in the main directory, run the following commands:
+
+Run the django server
+
+```python manage.py runserver``` 
+
+Run the websocket server
+
+```cd monopoly-server```
+
+```python app.py``` 
